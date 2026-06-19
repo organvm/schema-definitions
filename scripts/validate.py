@@ -54,6 +54,12 @@ SCHEMA_MAP = {
     "organ-definitions": "organ-definitions.schema.json",
     "excavation-report": "excavation-report.schema.json",
     "workspace-manifest": "workspace-manifest-v1.schema.json",
+    "uaks-assembly-recipe": "uaks-assembly-recipe.schema.json",
+    "uaks-code-atom": "uaks-code-atom.schema.json",
+    "uaks-source-object": "uaks-source-object.schema.json",
+    "uaks-text-atom": "uaks-text-atom.schema.json",
+    "uaks-validation-event": "uaks-validation-event.schema.json",
+    "storefront": "storefront-v1.schema.json",
 }
 
 
