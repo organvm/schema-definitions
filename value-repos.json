@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "description": "Repos promoted into the ranked value tier - discovered to hold concrete, build-out-worthy latent value.",
+  "ranked": [
+    {
+      "repo": "organvm/schema-definitions",
+      "promoted": "2026-07-01",
+      "source": "auto-discovery",
+      "tier": "infrastructure",
+      "value": "Machine-checkable contract and assurance layer for ORGANVM repo manifests, governance events, dispatch payloads, UAKS atoms, storefront projections, and conversation-corpus surfaces.",
+      "first_task": "Add a generated schema catalog/CLI command (`organvm-validate --list` or `--schema-catalog`) and wire that catalog into Limen's value-tier gate so ranked repos validate seed, ecosystem, network-map, pillar, and storefront contracts before dispatch.",
+      "thesis": "DISCOVERY.md"
+    }
+  ]
+}
