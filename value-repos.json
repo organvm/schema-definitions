@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "description": "Repos promoted into the ranked value tier - discovered to hold concrete, build-out-worthy latent value.",
+  "ranked": [
+    {
+      "repo": "organvm/schema-definitions",
+      "promoted": "2026-07-01",
+      "source": "auto-discovery",
+      "tier": "infrastructure",
+      "value": "AI-organization contract kit: a versioned JSON Schema and validation package that lets ORGANVM repos reject malformed registry, seed, governance, dispatch, corpus, UAKS, storefront, and telemetry payloads before they break routing, dashboards, or product surfaces.",
+      "first_task": "Ship a generated schemas/catalog.json plus a reusable organvm-validate-repo CLI/GitHub Action that validates seed.yaml, ecosystem.yaml, network-map.yaml, and known ORGANVM artifacts in downstream repos, then pilot it in organvm-engine and system-dashboard.",
+      "thesis": "DISCOVERY.md"
+    }
+  ]
+}
