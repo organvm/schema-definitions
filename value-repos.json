@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "description": "Repos promoted into the ranked value tier - discovered to hold concrete, build-out-worthy latent value.",
+  "ranked": [
+    {
+      "repo": "organvm/schema-definitions",
+      "promoted": "2026-07-01",
+      "source": "auto-discovery",
+      "tier": "infrastructure",
+      "value": "Contract authority for the ORGANVM estate: 34 canonical JSON Schemas, examples, validator CLI, and tests that can become the shared assurance, onboarding, documentation, and machine-readable schema catalog layer for every organ.",
+      "first_task": "Generate a checked-in schema catalog and reference page from `schemas/*.json` plus `examples/*`, then add a `--check-catalog` validation gate so docs, examples, and CLI schema detection cannot drift from the canonical contract set.",
+      "thesis": "DISCOVERY.md"
+    }
+  ]
+}
