@@ -18,3 +18,4 @@ organvm-validate = "scripts.validate:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
