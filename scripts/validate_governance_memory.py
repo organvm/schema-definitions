@@ -288,7 +288,10 @@ def validate_document(
     data: Any, schemas_dir: Path = SCHEMAS_DIR
 ) -> tuple[list[str], list[str]]:
     """Return (schema errors, semantic errors) for one decoded document."""
-    contract_name = data.get("contract_name") if isinstance(data, dict) else None
+    raw_contract_name = data.get("contract_name") if isinstance(data, dict) else None
+    if not isinstance(raw_contract_name, str):
+        return [f"unknown governance-memory contract_name: {raw_contract_name!r}"], []
+    contract_name = raw_contract_name
     schema_filename = CONTRACT_TO_SCHEMA.get(contract_name)
     if schema_filename is None:
         return [f"unknown governance-memory contract_name: {contract_name!r}"], []
