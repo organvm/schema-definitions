@@ -1,0 +1,51 @@
+{
+  "contract_name": "lineage-graph.v1",
+  "contract_version": 1,
+  "graph_id": "fixture-prime-directive-lineage",
+  "generated_at": "2026-07-16T18:05:00Z",
+  "frozen_snapshot_id": "snapshot-fixture-20260716",
+  "nodes": [
+    {
+      "node_id": "intent-fixture-001",
+      "lane": "operator_intent",
+      "node_type": "ask",
+      "source_envelope_id": "src_provider_renamed_alpha_event_001",
+      "occurred_at": "2026-07-16T17:59:00Z",
+      "authority_class": "operator_intent",
+      "summary": "Operator requests a governed memory contract.",
+      "content_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "review_state": "reviewed"
+    },
+    {
+      "node_id": "artifact-fixture-plan-001",
+      "lane": "artifact",
+      "node_type": "plan",
+      "source_envelope_id": "src_provider_new_beta_plan_001",
+      "occurred_at": "2026-07-16T18:02:00Z",
+      "authority_class": "artifact",
+      "summary": "Assistant-generated implementation plan.",
+      "content_hash": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "review_state": "reviewed"
+    }
+  ],
+  "edges": [
+    {
+      "edge_id": "edge-fixture-references-001",
+      "from_node": "artifact-fixture-plan-001",
+      "to_node": "intent-fixture-001",
+      "edge_type": "references",
+      "evidence_spans": [
+        {
+          "source_envelope_id": "src_provider_new_beta_plan_001",
+          "reference": "private-cas://body/provider-new-beta/plan-001#span-1",
+          "body_hash": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "start_offset": 0,
+          "end_offset": 64
+        }
+      ],
+      "confidence": 1.0,
+      "review_state": "reviewed",
+      "reviewer_reference": "owner_governance_registry"
+    }
+  ]
+}

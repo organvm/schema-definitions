@@ -1,0 +1,41 @@
+{
+  "contract_name": "coverage-receipt.v1",
+  "contract_version": 1,
+  "receipt_id": "coverage-negative-exact-all",
+  "snapshot_id": "snapshot-negative-exact-all",
+  "generated_at": "2026-07-16T18:15:00Z",
+  "denominator": {
+    "discovery_manifest_reference": "manifest:negative-exact-all",
+    "count": 1,
+    "manifest_hash": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+  },
+  "sources": [
+    {
+      "source_id": "src_blocked_fixture",
+      "status": "owner_blocked",
+      "accessible": false,
+      "owner_reference": "owner_export_fixture",
+      "failed_predicate": "export is present",
+      "next_action": "Acquire the owner-authorized export.",
+      "evidence_references": ["receipt:blocker"]
+    }
+  ],
+  "counts": {
+    "acquired": 0,
+    "parsed": 0,
+    "quarantined": 0,
+    "inaccessible": 0,
+    "missing_expected": 0,
+    "owner_blocked": 1
+  },
+  "exact_all": true,
+  "residual_owners": [
+    {
+      "source_id": "src_blocked_fixture",
+      "owner_reference": "owner_export_fixture",
+      "failed_predicate": "export is present",
+      "next_action": "Acquire the owner-authorized export."
+    }
+  ],
+  "receipt_hash": "sha256:6666666666666666666666666666666666666666666666666666666666666666"
+}

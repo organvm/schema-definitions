@@ -1,0 +1,24 @@
+{
+  "contract_name": "assertion-evidence.v1",
+  "contract_version": 1,
+  "assertion_id": "assertion-negative-single-group",
+  "assertion_class": "external_fact",
+  "statement": "This cannot be verified from one independence group.",
+  "verification_state": "verified",
+  "evidence_references": [
+    {
+      "evidence_id": "evidence-negative-one",
+      "independence_group": "same-owner",
+      "evidence_type": "primary_source",
+      "reference": "https://example.invalid/evidence/one",
+      "body_hash": "sha256:7777777777777777777777777777777777777777777777777777777777777777"
+    },
+    {
+      "evidence_id": "evidence-negative-two",
+      "independence_group": "same-owner",
+      "evidence_type": "secondary_source",
+      "reference": "https://example.invalid/evidence/two",
+      "body_hash": "sha256:8888888888888888888888888888888888888888888888888888888888888888"
+    }
+  ]
+}

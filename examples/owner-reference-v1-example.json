@@ -1,0 +1,15 @@
+{
+  "contract_name": "owner-reference.v1",
+  "contract_version": 1,
+  "owner_id": "owner_governance_registry",
+  "owner_type": "registry",
+  "display_name": "${GOVERNANCE_OWNER_DISPLAY_NAME}",
+  "resolver": {
+    "kind": "registry_key",
+    "identifier": "governance.owner.primary",
+    "authority_uri": "https://example.invalid/owners/governance",
+    "discovered_at": "2026-07-16T18:00:00Z"
+  },
+  "aliases": ["governance-owner"],
+  "evidence_references": ["receipt:owner-discovery:2026-07-16"]
+}

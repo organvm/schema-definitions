@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://meta-organvm.github.io/schema-definitions/node-self-image.v1.schema.json",
+  "title": "Node Self Image v1",
+  "description": "Evidence-backed self-image capsule for an organ, repository, module, document, session, or governed artifact.",
+  "type": "object",
+  "required": [
+    "contract_name", "contract_version", "node_id", "node_type", "owner_reference",
+    "relations", "cursors", "digests", "observations", "active_ideal_forms",
+    "reconciled_at", "evidence_references"
+  ],
+  "properties": {
+    "contract_name": {"const": "node-self-image.v1"},
+    "contract_version": {"const": 1},
+    "node_id": {"type": "string", "minLength": 1},
+    "node_type": {"type": "string", "enum": ["organ", "repository", "module", "document", "session", "artifact"]},
+    "display_name": {"type": "string", "minLength": 1},
+    "owner_reference": {"type": "string", "minLength": 1},
+    "relations": {
+      "type": "object",
+      "required": ["incoming", "outgoing"],
+      "properties": {
+        "incoming": {"$ref": "#/$defs/relation_list"},
+        "outgoing": {"$ref": "#/$defs/relation_list"}
+      },
+      "additionalProperties": false
+    },
+    "cursors": {
+      "type": "object",
+      "required": ["memory", "event"],
+      "properties": {
+        "memory": {"type": ["string", "null"]},
+        "event": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "digests": {
+      "type": "object",
+      "required": ["constitutional", "topology"],
+      "properties": {
+        "constitutional": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+        "topology": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"}
+      },
+      "additionalProperties": false
+    },
+    "observations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["key", "value", "observed_at", "evidence_references"],
+        "properties": {
+          "key": {"type": "string", "minLength": 1},
+          "value": true,
+          "observed_at": {"type": "string", "format": "date-time"},
+          "evidence_references": {
+            "type": "array",
+            "minItems": 1,
+            "items": {"type": "string", "minLength": 1},
+            "uniqueItems": true
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "active_ideal_forms": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["form_id", "implementation_state", "distance_to_ideal", "predicate_references", "evidence_references"],
+        "properties": {
+          "form_id": {"type": "string", "minLength": 1},
+          "implementation_state": {"type": "string", "enum": ["not_started", "partial", "implemented", "verified", "blocked", "superseded"]},
+          "distance_to_ideal": {"type": "number", "minimum": 0, "maximum": 1},
+          "predicate_references": {
+            "type": "array",
+            "minItems": 1,
+            "items": {"type": "string", "minLength": 1},
+            "uniqueItems": true
+          },
+          "evidence_references": {
+            "type": "array",
+            "items": {"type": "string", "minLength": 1},
+            "uniqueItems": true
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "reconciled_at": {"type": "string", "format": "date-time"},
+    "evidence_references": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    }
+  },
+  "$defs": {
+    "relation_list": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["relation_type", "target_node_id", "evidence_references"],
+        "properties": {
+          "relation_type": {"type": "string", "minLength": 1},
+          "target_node_id": {"type": "string", "minLength": 1},
+          "evidence_references": {
+            "type": "array",
+            "minItems": 1,
+            "items": {"type": "string", "minLength": 1},
+            "uniqueItems": true
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

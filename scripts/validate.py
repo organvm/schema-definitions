@@ -28,6 +28,14 @@ EXAMPLES_DIR = Path(__file__).resolve().parent.parent / "examples"
 
 # Map file name patterns to schemas
 SCHEMA_MAP = {
+    "owner-reference": "owner-reference.v1.schema.json",
+    "parameter-contract": "parameter-contract.v1.schema.json",
+    "source-envelope": "source-envelope.v1.schema.json",
+    "assertion-evidence": "assertion-evidence.v1.schema.json",
+    "lineage-graph": "lineage-graph.v1.schema.json",
+    "governance-testament": "governance-testament.v1.schema.json",
+    "node-self-image": "node-self-image.v1.schema.json",
+    "coverage-receipt": "coverage-receipt.v1.schema.json",
     "ammoi": "ammoi-v1.schema.json",
     "evolution-policy": "evolution-policy.schema.json",
     "pulse-event": "pulse-event.schema.json",

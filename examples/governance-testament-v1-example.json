@@ -1,0 +1,38 @@
+{
+  "contract_name": "governance-testament.v1",
+  "contract_version": 1,
+  "testament_id": "governance-testament-fixture",
+  "version": "1.0.0",
+  "title": "Governed Memory Fixture",
+  "status": "ratified",
+  "directive": "Preserve source authority, reconcile state through bounded events, and render evidence-backed self-knowledge.",
+  "directive_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+  "layers": ["ontology", "cybernetics", "phenomenology"],
+  "instruments": [
+    {"instrument_id": "AMMOI", "reference": "spec://INST-AMMOI", "status": "ratified"},
+    {"instrument_id": "EVENT-SPINE", "reference": "spec://INST-EVENT-SPINE", "status": "partial"}
+  ],
+  "axioms": [
+    {
+      "axiom_id": "AX-FIXTURE-001",
+      "statement": "Operator intent and generated artifacts remain distinct authority lanes.",
+      "citation_references": ["assertion:operator-authority-fixture"]
+    }
+  ],
+  "ideal_form_references": ["ideal-form:governed-memory-fixture"],
+  "ratification": {
+    "ratified_at": "2026-07-16T18:10:00Z",
+    "authority_event_reference": "source:src_provider_renamed_alpha_event_001",
+    "constitutional_record_reference": "constitution:amendment-fixture",
+    "source_lineage_references": ["lineage:fixture-prime-directive-lineage"],
+    "approver_reference": "owner_governance_registry"
+  },
+  "predicates": [
+    {
+      "predicate_id": "predicate-fixture-schema",
+      "command": "python scripts/validate.py --all-examples",
+      "expected_result": "all positive examples validate"
+    }
+  ],
+  "citations": ["assertion:operator-authority-fixture"]
+}

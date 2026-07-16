@@ -1,0 +1,31 @@
+{
+  "contract_name": "coverage-receipt.v1",
+  "contract_version": 1,
+  "receipt_id": "coverage-negative-counts",
+  "snapshot_id": "snapshot-negative-counts",
+  "generated_at": "2026-07-16T18:15:00Z",
+  "denominator": {
+    "discovery_manifest_reference": "manifest:negative-counts",
+    "count": 1,
+    "manifest_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+  },
+  "sources": [
+    {
+      "source_id": "src_count_fixture",
+      "status": "parsed",
+      "accessible": true,
+      "evidence_references": ["receipt:parse-count"]
+    }
+  ],
+  "counts": {
+    "acquired": 1,
+    "parsed": 0,
+    "quarantined": 0,
+    "inaccessible": 0,
+    "missing_expected": 0,
+    "owner_blocked": 0
+  },
+  "exact_all": true,
+  "residual_owners": [],
+  "receipt_hash": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+}

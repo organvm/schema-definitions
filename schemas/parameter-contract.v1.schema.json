@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://meta-organvm.github.io/schema-definitions/parameter-contract.v1.schema.json",
+  "title": "Parameter Contract v1",
+  "description": "Typed registry for dynamic values resolved from configuration or live owner state. Secrets are references only.",
+  "type": "object",
+  "required": ["contract_name", "contract_version", "registry_id", "generated_at", "parameters"],
+  "properties": {
+    "contract_name": {"const": "parameter-contract.v1"},
+    "contract_version": {"const": 1},
+    "registry_id": {"type": "string", "minLength": 1},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "parameters": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "key",
+          "value_type",
+          "description",
+          "resolver",
+          "freshness",
+          "validation",
+          "secret_reference_policy"
+        ],
+        "properties": {
+          "key": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+          "value_type": {
+            "type": "string",
+            "enum": [
+              "string", "integer", "number", "boolean", "uri", "path", "timestamp",
+              "duration", "identifier", "secret_reference", "json"
+            ]
+          },
+          "description": {"type": "string", "minLength": 1},
+          "resolver": {
+            "type": "object",
+            "required": ["source", "input", "required"],
+            "properties": {
+              "source": {
+                "type": "string",
+                "enum": ["environment", "configuration", "owner_record", "live_discovery", "secret_store"]
+              },
+              "input": {"type": "string", "minLength": 1},
+              "required": {"type": "boolean"}
+            },
+            "additionalProperties": false
+          },
+          "freshness": {
+            "type": "object",
+            "required": ["mode"],
+            "properties": {
+              "mode": {"type": "string", "enum": ["immutable", "static", "ttl", "live"]},
+              "ttl_seconds": {"type": "integer", "minimum": 1},
+              "observed_at": {"type": "string", "format": "date-time"}
+            },
+            "additionalProperties": false
+          },
+          "validation": {
+            "type": "object",
+            "properties": {
+              "pattern": {"type": "string"},
+              "minimum": {"type": "number"},
+              "maximum": {"type": "number"},
+              "allowed_values": {"type": "array", "minItems": 1, "uniqueItems": true},
+              "schema_ref": {"type": "string", "format": "uri-reference"}
+            },
+            "additionalProperties": false
+          },
+          "secret_reference_policy": {
+            "type": "string",
+            "enum": ["forbidden", "reference_only", "required"]
+          },
+          "default": true,
+          "example_placeholder": {"type": "string", "pattern": "^\\$\\{[A-Z][A-Z0-9_]*\\}$"},
+          "owner_reference": {"type": "string", "minLength": 1}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

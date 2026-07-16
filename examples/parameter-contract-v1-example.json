@@ -1,0 +1,30 @@
+{
+  "contract_name": "parameter-contract.v1",
+  "contract_version": 1,
+  "registry_id": "governance-memory-runtime",
+  "generated_at": "2026-07-16T18:00:00Z",
+  "parameters": [
+    {
+      "key": "GOVERNANCE_OWNER_REPOSITORY_ID",
+      "value_type": "identifier",
+      "description": "Stable repository identifier resolved from the remote owner.",
+      "resolver": {"source": "live_discovery", "input": "repository.id", "required": true},
+      "freshness": {"mode": "live", "observed_at": "2026-07-16T18:00:00Z"},
+      "validation": {"pattern": "^[0-9]+$"},
+      "secret_reference_policy": "forbidden",
+      "example_placeholder": "${GOVERNANCE_OWNER_REPOSITORY_ID}",
+      "owner_reference": "owner_governance_registry"
+    },
+    {
+      "key": "SOURCE_EXPORT_CREDENTIAL_REF",
+      "value_type": "secret_reference",
+      "description": "Reference to an authenticated export credential; never the credential value.",
+      "resolver": {"source": "secret_store", "input": "SOURCE_EXPORT_CREDENTIAL_REF", "required": false},
+      "freshness": {"mode": "live"},
+      "validation": {"pattern": "^(env|keychain|vault|connector):"},
+      "secret_reference_policy": "reference_only",
+      "example_placeholder": "${SOURCE_EXPORT_CREDENTIAL_REF}",
+      "owner_reference": "owner_credential_registry"
+    }
+  ]
+}

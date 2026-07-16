@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- Add eight governance-memory v1 contracts for source custody projections,
+  dual-lane lineage, governance testament, assertion evidence, node self-images,
+  exact coverage, owner resolution, and typed parameters.
+- Add provider-neutral examples and semantic validation for exact coverage,
+  evidence independence, reviewed adoption, and secret-reference safety.
+- Add regression fixtures proving renamed and newly introduced providers require
+  configuration changes only.
+
 ## 1.0.0 (2026-03-04)
 
 - Formalized as v1.0.0 — all 6 schemas stable and validated in production since 2026-02-17
