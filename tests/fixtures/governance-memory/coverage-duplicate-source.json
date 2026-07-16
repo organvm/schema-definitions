@@ -32,6 +32,7 @@
     "owner_blocked": 0
   },
   "exact_all": true,
+  "ready": true,
   "residual_owners": [],
   "receipt_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
 }

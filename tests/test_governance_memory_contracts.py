@@ -89,6 +89,23 @@ def test_negative_semantic_fixtures_are_structurally_valid_but_rejected():
         assert invariant_errors, fixture.name
 
 
+def test_exact_coverage_can_retain_explicit_blocker_debt_without_being_ready():
+    data = load(EXAMPLES_DIR / "coverage-receipt-v1-example.json")
+    assert data["exact_all"] is True
+    assert data["ready"] is False
+    assert semantic_errors(data) == []
+
+
+def test_all_parsed_coverage_is_exact_and_ready():
+    data = load(EXAMPLES_DIR / "coverage-receipt-v1-example.json")
+    data["sources"] = [data["sources"][0]]
+    data["denominator"]["count"] = 1
+    data["counts"]["owner_blocked"] = 0
+    data["residual_owners"] = []
+    data["ready"] = True
+    assert semantic_errors(data) == []
+
+
 def test_verified_operator_directive_requires_source_event_and_ratification():
     data = load(EXAMPLES_DIR / "assertion-evidence-v1-example.json")
     data["assertion_class"] = "operator_directive"

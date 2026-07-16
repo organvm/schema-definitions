@@ -6,7 +6,7 @@
   "type": "object",
   "required": [
     "contract_name", "contract_version", "receipt_id", "snapshot_id", "generated_at",
-    "denominator", "sources", "counts", "exact_all", "residual_owners", "receipt_hash"
+    "denominator", "sources", "counts", "exact_all", "ready", "residual_owners", "receipt_hash"
   ],
   "properties": {
     "contract_name": {"const": "coverage-receipt.v1"},
@@ -69,6 +69,10 @@
       "additionalProperties": false
     },
     "exact_all": {"type": "boolean"},
+    "ready": {
+      "type": "boolean",
+      "description": "True only when exact coverage is established and every discovered source is parsed with no residual owner debt."
+    },
     "residual_owners": {
       "type": "array",
       "items": {

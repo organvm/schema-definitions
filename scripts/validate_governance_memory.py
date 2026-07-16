@@ -115,15 +115,29 @@ def _coverage_errors(data: dict[str, Any]) -> list[str]:
         len(source_ids) == len(set(source_ids))
         and isinstance(denominator, dict)
         and denominator.get("count") == len(sources)
+        and isinstance(counts, dict)
         and all(
-            isinstance(source, dict) and source.get("status") == "parsed"
-            for source in sources
+            counts.get(status) == expected_counts.get(status, 0)
+            for status in SOURCE_STATUSES
         )
         and actual_residuals == expected_residuals
     )
     if data.get("exact_all") is not expected_exact_all:
         errors.append(
-            "exact_all must be true exactly when each unique discovered source is parsed"
+            "exact_all must be true exactly when the unique denominator is classified once and every non-parsed source is owner-routed"
+        )
+
+    expected_ready = (
+        expected_exact_all
+        and all(
+            isinstance(source, dict) and source.get("status") == "parsed"
+            for source in sources
+        )
+        and not actual_residuals
+    )
+    if data.get("ready") is not expected_ready:
+        errors.append(
+            "ready must be true exactly when exact_all is true and every source is parsed"
         )
 
     return errors

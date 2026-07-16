@@ -26,6 +26,7 @@
     "owner_blocked": 0
   },
   "exact_all": true,
+  "ready": true,
   "residual_owners": [],
   "receipt_hash": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
 }

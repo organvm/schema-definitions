@@ -30,7 +30,7 @@ embed a provider catalog or deployment-specific path.
 | `governance-testament.v1.schema.json` | Ratified directives, layers, instruments, ideals, predicates, and citations |
 | `assertion-evidence.v1.schema.json` | Evidence independence, verification, and freshness for assertions |
 | `node-self-image.v1.schema.json` | Identity, relations, cursors, state, digests, and distance to active ideals |
-| `coverage-receipt.v1.schema.json` | Dynamic source denominator, exact classification counts, and residual owners |
+| `coverage-receipt.v1.schema.json` | Dynamic denominator, exact classification, separate readiness, and residual owners |
 | `owner-reference.v1.schema.json` | Stable owner IDs resolved through owner-native records |
 | `parameter-contract.v1.schema.json` | Typed runtime parameters, validation, freshness, and secret-reference policy |
 

@@ -7,6 +7,8 @@
   exact coverage, owner resolution, and typed parameters.
 - Add provider-neutral examples and semantic validation for exact coverage,
   evidence independence, reviewed adoption, and secret-reference safety.
+- Define `exact_all` as exactly-once classification of the frozen denominator;
+  expose `ready` separately so classified inaccessible sources retain owner debt.
 - Add regression fixtures proving renamed and newly introduced providers require
   configuration changes only.
 
