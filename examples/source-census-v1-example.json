@@ -1,0 +1,68 @@
+{
+  "contract_name": "source-census.v1",
+  "contract_version": 1,
+  "census_id": "census-fixture-20260716",
+  "snapshot_id": "snapshot-fixture-20260716",
+  "snapshot_at": "2026-07-16T18:00:00Z",
+  "snapshot_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "manifest_reference": "config://governance-memory/source-manifest",
+  "manifest_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+  "discovery_roots": [
+    {
+      "root_id": "root-runtime-export",
+      "root_kind": "export",
+      "runtime_reference": "custody://runtime/export",
+      "config_reference": "config://governance-memory/source-manifest#runtime-export"
+    },
+    {
+      "root_id": "root-owner-connector",
+      "root_kind": "connector",
+      "runtime_reference": "connector://owner-read-only",
+      "config_reference": "config://governance-memory/source-manifest#owner-connector"
+    }
+  ],
+  "seed_expectations": [
+    {
+      "expectation_id": "expectation-owner-export",
+      "source_family": "runtime-provider-beta",
+      "config_reference": "config://governance-memory/source-manifest#owner-export",
+      "required": true
+    }
+  ],
+  "raw_units": [
+    {
+      "raw_unit_id": "raw_fixture_event_001",
+      "legacy_source_id": "src_provider_renamed_alpha_event_001",
+      "discovery_root_id": "root-runtime-export",
+      "source_family": "runtime-provider-alpha",
+      "source_instance": "workspace-fixture-01",
+      "format_adapter": "jsonl-role-events-v3",
+      "native_identifiers": {
+        "conversation_id": "native-conversation-17",
+        "event_id": "native-event-42"
+      },
+      "acquisition_status": "acquired",
+      "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "custody_pointer": "private-cas://body/runtime-provider-alpha/native-event-42",
+      "evidence_references": ["receipt:acquisition-fixture-alpha"]
+    },
+    {
+      "raw_unit_id": "raw_fixture_expected_002",
+      "discovery_root_id": "root-owner-connector",
+      "expectation_id": "expectation-owner-export",
+      "source_family": "runtime-provider-beta",
+      "source_instance": "owner-account-fixture",
+      "format_adapter": "official-export-v1",
+      "native_identifiers": {"expectation_id": "owner-export-fixture"},
+      "acquisition_status": "inaccessible",
+      "content_hash": null,
+      "custody_pointer": null,
+      "owner_reference": "owner_source_export_fixture",
+      "failed_predicate": "official read-only export is present in the frozen snapshot",
+      "next_action": "Acquire the official owner-authorized export.",
+      "evidence_references": ["receipt:blocker-fixture-beta"]
+    }
+  ],
+  "digest_algorithm": "sha256-rfc8785-excluding-self-digest-v1",
+  "census_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+}

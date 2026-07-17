@@ -1,0 +1,165 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://meta-organvm.github.io/schema-definitions/governance-atlas-receipt.v1.schema.json",
+  "title": "Governance Atlas Receipt v1",
+  "description": "Owner receipt proving the Atlas, assertions, ideal forms, self-images, timelines, and six zooms resolve against one frozen snapshot.",
+  "type": "object",
+  "required": [
+    "contract_name",
+    "contract_version",
+    "atlas_receipt_id",
+    "snapshot_id",
+    "snapshot_digest",
+    "owner_reference",
+    "generated_at",
+    "source_envelope_set",
+    "assertion_evidence_set",
+    "ideal_form_register",
+    "node_self_image_set",
+    "iceberg_atlas",
+    "timeline_counts",
+    "zoom_counts",
+    "predicate_results",
+    "readiness",
+    "digest_algorithm",
+    "receipt_digest"
+  ],
+  "properties": {
+    "contract_name": {"const": "governance-atlas-receipt.v1"},
+    "contract_version": {"const": 1},
+    "atlas_receipt_id": {"type": "string", "minLength": 1},
+    "snapshot_id": {"type": "string", "minLength": 1},
+    "snapshot_digest": {"$ref": "#/$defs/digest"},
+    "owner_reference": {"type": "string", "minLength": 1},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "source_envelope_set": {"$ref": "#/$defs/nonempty_set_reference"},
+    "assertion_evidence_set": {"$ref": "#/$defs/nonempty_set_reference"},
+    "ideal_form_register": {"$ref": "#/$defs/artifact_reference"},
+    "node_self_image_set": {"$ref": "#/$defs/nonempty_set_reference"},
+    "iceberg_atlas": {"$ref": "#/$defs/artifact_reference"},
+    "timeline_counts": {
+      "type": "object",
+      "required": ["operator_intent", "artifact"],
+      "properties": {
+        "operator_intent": {"type": "integer", "minimum": 1},
+        "artifact": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": false
+    },
+    "zoom_counts": {
+      "type": "object",
+      "required": [
+        "system",
+        "organ",
+        "repository",
+        "document",
+        "session",
+        "atom"
+      ],
+      "properties": {
+        "system": {"type": "integer", "minimum": 1},
+        "organ": {"type": "integer", "minimum": 1},
+        "repository": {"type": "integer", "minimum": 1},
+        "document": {"type": "integer", "minimum": 1},
+        "session": {"type": "integer", "minimum": 1},
+        "atom": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": false
+    },
+    "predicate_results": {
+      "type": "object",
+      "required": [
+        "source_envelopes_resolved",
+        "assertions_verified",
+        "ideal_forms_complete",
+        "self_images_complete",
+        "timelines_complete",
+        "zooms_complete",
+        "atlas_digest_verified"
+      ],
+      "properties": {
+        "source_envelopes_resolved": {"type": "boolean"},
+        "assertions_verified": {"type": "boolean"},
+        "ideal_forms_complete": {"type": "boolean"},
+        "self_images_complete": {"type": "boolean"},
+        "timelines_complete": {"type": "boolean"},
+        "zooms_complete": {"type": "boolean"},
+        "atlas_digest_verified": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "readiness": {"$ref": "#/$defs/readiness"},
+    "digest_algorithm": {
+      "const": "sha256-rfc8785-excluding-self-digest-v1",
+      "description": "RFC 8785 canonical JSON, excluding receipt_digest itself."
+    },
+    "receipt_digest": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "artifact_reference": {
+      "type": "object",
+      "required": ["artifact_id", "reference", "snapshot_id", "digest"],
+      "properties": {
+        "artifact_id": {"type": "string", "minLength": 1},
+        "reference": {"type": "string", "minLength": 1},
+        "snapshot_id": {"type": "string", "minLength": 1},
+        "digest": {"$ref": "#/$defs/digest"}
+      },
+      "additionalProperties": false
+    },
+    "nonempty_set_reference": {
+      "type": "object",
+      "required": ["artifact_id", "reference", "snapshot_id", "digest", "count"],
+      "properties": {
+        "artifact_id": {"type": "string", "minLength": 1},
+        "reference": {"type": "string", "minLength": 1},
+        "snapshot_id": {"type": "string", "minLength": 1},
+        "digest": {"$ref": "#/$defs/digest"},
+        "count": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": false
+    },
+    "readiness": {
+      "type": "object",
+      "required": [
+        "exact_all",
+        "unresolved_blockers",
+        "quarantines",
+        "missing_requirements",
+        "citation_debt",
+        "incomplete_predicates",
+        "ready",
+        "status"
+      ],
+      "properties": {
+        "exact_all": {"type": "boolean"},
+        "unresolved_blockers": {"$ref": "#/$defs/debt_list"},
+        "quarantines": {"$ref": "#/$defs/debt_list"},
+        "missing_requirements": {"$ref": "#/$defs/debt_list"},
+        "citation_debt": {"$ref": "#/$defs/debt_list"},
+        "incomplete_predicates": {"$ref": "#/$defs/debt_list"},
+        "ready": {"type": "boolean"},
+        "status": {
+          "type": "string",
+          "enum": [
+            "incomplete",
+            "blocked",
+            "ready",
+            "closed_with_owner_routed_debt"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "debt_list": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    }
+  },
+  "additionalProperties": false
+}

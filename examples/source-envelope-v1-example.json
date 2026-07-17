@@ -1,0 +1,26 @@
+{
+  "contract_name": "source-envelope.v1",
+  "contract_version": 1,
+  "source_id": "src_provider_renamed_alpha_event_001",
+  "source_family": "provider-renamed-alpha",
+  "source_instance": "workspace-fixture-01",
+  "format_adapter": "jsonl-role-events-v3",
+  "custody_snapshot": {
+    "snapshot_id": "snapshot-fixture-20260716",
+    "captured_at": "2026-07-16T18:00:00Z",
+    "snapshot_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "custody_pointer": "private-cas://snapshot-fixture-20260716",
+    "immutable": true
+  },
+  "native_identifiers": {"conversation_id": "native-conversation-17", "event_id": "native-event-42"},
+  "role": "operator",
+  "event_timestamp": "2026-07-16T17:59:00Z",
+  "ingestion_timestamp": "2026-07-16T18:00:01Z",
+  "authority_class": "operator_intent",
+  "body_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "private_custody_pointer": "private-cas://body/provider-renamed-alpha/native-event-42",
+  "historical_branding": "provider-renamed-alpha",
+  "redacted_projection_pointer": "reports://source-events/native-event-42",
+  "provider_metadata": {"export_format": "fixture-v3"},
+  "attachments": []
+}

@@ -1,0 +1,108 @@
+{
+  "contract_name": "governance-cadence-receipt.v1",
+  "contract_version": 1,
+  "cadence_receipt_id": "cadence-fixture-run-2",
+  "run_id": "cadence-fixture-run-2",
+  "run_number": 2,
+  "snapshot_id": "snapshot-fixture-20260716",
+  "snapshot_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "owner_reference": "owner_governance_cadence",
+  "started_at": "2026-07-16T18:30:00Z",
+  "completed_at": "2026-07-16T18:30:09Z",
+  "input_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "output_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "previous_cadence_receipt_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "stage_receipts": [
+    {
+      "stage": "discover",
+      "stage_receipt_id": "stage-discover-fixture-run-2",
+      "reference": "receipts://cadence-fixture-run-2/discover",
+      "status": "completed",
+      "receipt_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "predecessor_receipt_digest": null
+    },
+    {
+      "stage": "snapshot",
+      "stage_receipt_id": "stage-snapshot-fixture-run-2",
+      "reference": "receipts://cadence-fixture-run-2/snapshot",
+      "status": "completed",
+      "receipt_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "predecessor_receipt_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    },
+    {
+      "stage": "parse",
+      "stage_receipt_id": "stage-parse-fixture-run-2",
+      "reference": "receipts://cadence-fixture-run-2/parse",
+      "status": "completed",
+      "receipt_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "predecessor_receipt_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    },
+    {
+      "stage": "classify",
+      "stage_receipt_id": "stage-classify-fixture-run-2",
+      "reference": "receipts://cadence-fixture-run-2/classify",
+      "status": "completed",
+      "receipt_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+      "predecessor_receipt_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+    },
+    {
+      "stage": "reconcile",
+      "stage_receipt_id": "stage-reconcile-fixture-run-2",
+      "reference": "receipts://cadence-fixture-run-2/reconcile",
+      "status": "completed",
+      "receipt_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+      "predecessor_receipt_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+    },
+    {
+      "stage": "distill",
+      "stage_receipt_id": "stage-distill-fixture-run-2",
+      "reference": "receipts://cadence-fixture-run-2/distill",
+      "status": "completed",
+      "receipt_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "predecessor_receipt_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+    },
+    {
+      "stage": "validate",
+      "stage_receipt_id": "stage-validate-fixture-run-2",
+      "reference": "receipts://cadence-fixture-run-2/validate",
+      "status": "completed",
+      "receipt_digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+      "predecessor_receipt_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666"
+    },
+    {
+      "stage": "render",
+      "stage_receipt_id": "stage-render-fixture-run-2",
+      "reference": "receipts://cadence-fixture-run-2/render",
+      "status": "completed",
+      "receipt_digest": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+      "predecessor_receipt_digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777"
+    },
+    {
+      "stage": "receipt",
+      "stage_receipt_id": "stage-receipt-fixture-run-2",
+      "reference": "receipts://cadence-fixture-run-2/receipt",
+      "status": "completed",
+      "receipt_digest": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+      "predecessor_receipt_digest": "sha256:8888888888888888888888888888888888888888888888888888888888888888"
+    }
+  ],
+  "fixed_point": {
+    "status": "proven",
+    "new_event_count": 0,
+    "changed_byte_count": 0,
+    "replayed_completed_children": 0,
+    "output_digest_matches_previous": true
+  },
+  "readiness": {
+    "exact_all": true,
+    "unresolved_blockers": [],
+    "quarantines": [],
+    "missing_requirements": [],
+    "citation_debt": [],
+    "incomplete_predicates": [],
+    "ready": true,
+    "status": "ready"
+  },
+  "digest_algorithm": "sha256-rfc8785-excluding-self-digest-v1",
+  "receipt_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+}

@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://meta-organvm.github.io/schema-definitions/assertion-evidence.v1.schema.json",
+  "title": "Assertion Evidence v1",
+  "description": "Evidence and freshness record for factual assertions, operator directives, current-state observations, and labeled inferences.",
+  "type": "object",
+  "required": [
+    "contract_name", "contract_version", "assertion_id", "assertion_class", "statement",
+    "verification_state", "evidence_references"
+  ],
+  "properties": {
+    "contract_name": {"const": "assertion-evidence.v1"},
+    "contract_version": {"const": 1},
+    "assertion_id": {"type": "string", "minLength": 1},
+    "assertion_class": {
+      "type": "string",
+      "enum": ["external_fact", "operator_directive", "current_state", "inference", "historical_record", "ratified_axiom"]
+    },
+    "statement": {"type": "string", "minLength": 1},
+    "verification_state": {"type": "string", "enum": ["unverified", "verified", "stale", "disputed"]},
+    "inference_label": {"type": "string", "minLength": 1},
+    "freshness": {
+      "type": "object",
+      "required": ["verified_at", "max_age_seconds", "status"],
+      "properties": {
+        "verified_at": {"type": "string", "format": "date-time"},
+        "max_age_seconds": {"type": "integer", "minimum": 1},
+        "status": {"type": "string", "enum": ["fresh", "stale", "not_applicable"]}
+      },
+      "additionalProperties": false
+    },
+    "evidence_references": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["evidence_id", "independence_group", "evidence_type", "reference", "body_hash"],
+        "properties": {
+          "evidence_id": {"type": "string", "minLength": 1},
+          "independence_group": {"type": "string", "minLength": 1},
+          "evidence_type": {
+            "type": "string",
+            "enum": [
+              "immutable_source_event", "ratified_constitutional_record", "owner_record",
+              "fresh_verifier_receipt", "primary_source", "secondary_source", "artifact", "other"
+            ]
+          },
+          "reference": {"type": "string", "minLength": 1},
+          "body_hash": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+          "observed_at": {"type": "string", "format": "date-time"}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"assertion_class": {"const": "inference"}}},
+      "then": {"required": ["inference_label"]}
+    },
+    {
+      "if": {"properties": {"assertion_class": {"const": "current_state"}}},
+      "then": {"required": ["freshness"]}
+    }
+  ],
+  "additionalProperties": false
+}

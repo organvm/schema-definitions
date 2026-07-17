@@ -1,0 +1,164 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://meta-organvm.github.io/schema-definitions/source-census.v1.schema.json",
+  "title": "Source Census v1",
+  "description": "Frozen, provider-neutral enumeration of every runtime-discovered raw unit and expected source. Manifests seed discovery; they do not define a closed provider catalog.",
+  "type": "object",
+  "required": [
+    "contract_name",
+    "contract_version",
+    "census_id",
+    "snapshot_id",
+    "snapshot_at",
+    "snapshot_digest",
+    "manifest_reference",
+    "manifest_digest",
+    "discovery_roots",
+    "seed_expectations",
+    "raw_units",
+    "digest_algorithm",
+    "census_digest"
+  ],
+  "properties": {
+    "contract_name": {"const": "source-census.v1"},
+    "contract_version": {"const": 1},
+    "census_id": {"type": "string", "minLength": 1},
+    "snapshot_id": {"type": "string", "minLength": 1},
+    "snapshot_at": {"type": "string", "format": "date-time"},
+    "snapshot_digest": {"$ref": "#/$defs/digest"},
+    "manifest_reference": {"type": "string", "minLength": 1},
+    "manifest_digest": {"$ref": "#/$defs/digest"},
+    "discovery_roots": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": ["root_id", "root_kind", "runtime_reference", "config_reference"],
+        "properties": {
+          "root_id": {"type": "string", "minLength": 1},
+          "root_kind": {
+            "type": "string",
+            "enum": [
+              "git_ref",
+              "workspace_root",
+              "custody_manifest",
+              "application_store",
+              "export",
+              "connector"
+            ]
+          },
+          "runtime_reference": {"type": "string", "minLength": 1},
+          "config_reference": {"type": "string", "minLength": 1}
+        },
+        "additionalProperties": false
+      }
+    },
+    "seed_expectations": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": ["expectation_id", "source_family", "config_reference", "required"],
+        "properties": {
+          "expectation_id": {"type": "string", "minLength": 1},
+          "source_family": {"type": "string", "minLength": 1},
+          "config_reference": {"type": "string", "minLength": 1},
+          "required": {"type": "boolean"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "raw_units": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/raw_unit"}
+    },
+    "digest_algorithm": {
+      "const": "sha256-rfc8785-excluding-self-digest-v1",
+      "description": "RFC 8785 canonical JSON, excluding census_digest itself."
+    },
+    "census_digest": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "raw_unit": {
+      "type": "object",
+      "required": [
+        "raw_unit_id",
+        "discovery_root_id",
+        "source_family",
+        "source_instance",
+        "format_adapter",
+        "native_identifiers",
+        "acquisition_status",
+        "content_hash",
+        "custody_pointer",
+        "evidence_references"
+      ],
+      "properties": {
+        "raw_unit_id": {
+          "type": "string",
+          "pattern": "^raw_[A-Za-z0-9_-]+$",
+          "description": "Canonical raw-unit identity. Snapshot IDs, status, paths, enumeration order, and provider display order are not identity inputs."
+        },
+        "legacy_source_id": {"type": "string", "minLength": 1},
+        "discovery_root_id": {"type": "string", "minLength": 1},
+        "expectation_id": {"type": "string", "minLength": 1},
+        "source_family": {"type": "string", "minLength": 1},
+        "source_instance": {"type": "string", "minLength": 1},
+        "format_adapter": {"type": "string", "minLength": 1},
+        "native_identifiers": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {"type": "string", "minLength": 1}
+        },
+        "acquisition_status": {
+          "type": "string",
+          "enum": ["acquired", "inaccessible", "missing_expected", "blocked"]
+        },
+        "content_hash": {
+          "oneOf": [
+            {"$ref": "#/$defs/digest"},
+            {"type": "null"}
+          ]
+        },
+        "custody_pointer": {
+          "type": ["string", "null"],
+          "minLength": 1
+        },
+        "owner_reference": {"type": "string", "minLength": 1},
+        "failed_predicate": {"type": "string", "minLength": 1},
+        "next_action": {"type": "string", "minLength": 1},
+        "evidence_references": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"acquisition_status": {"const": "acquired"}},
+            "required": ["acquisition_status"]
+          },
+          "then": {
+            "properties": {
+              "content_hash": {"$ref": "#/$defs/digest"},
+              "custody_pointer": {"type": "string", "minLength": 1}
+            }
+          },
+          "else": {
+            "required": ["owner_reference", "failed_predicate", "next_action"]
+          }
+        }
+      ],
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

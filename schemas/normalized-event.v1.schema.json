@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://meta-organvm.github.io/schema-definitions/normalized-event.v1.schema.json",
+  "title": "Normalized Event v1",
+  "description": "Adapter-produced event whose stable identity is the sha256 of canonical native identity namespace, native identifiers, native role, and immutable content hash. Snapshot ID, line number, provider/source order, and transport position are explicitly excluded.",
+  "type": "object",
+  "required": [
+    "contract_name",
+    "contract_version",
+    "event_id",
+    "identity_algorithm",
+    "identity_basis",
+    "snapshot_id",
+    "snapshot_digest",
+    "raw_unit_id",
+    "source_family",
+    "source_instance",
+    "format_adapter",
+    "normalized_role",
+    "occurred_at",
+    "authority_class",
+    "source_envelope_reference",
+    "evidence_references"
+  ],
+  "properties": {
+    "contract_name": {"const": "normalized-event.v1"},
+    "contract_version": {"const": 1},
+    "event_id": {
+      "type": "string",
+      "pattern": "^evt_[a-f0-9]{64}$"
+    },
+    "identity_algorithm": {
+      "const": "sha256-canonical-json-native-identity-role-content-v1"
+    },
+    "identity_basis": {
+      "type": "object",
+      "required": [
+        "native_identity_namespace",
+        "native_identifiers",
+        "native_role",
+        "content_hash"
+      ],
+      "properties": {
+        "native_identity_namespace": {"type": "string", "minLength": 1},
+        "native_identifiers": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {"type": "string", "minLength": 1}
+        },
+        "native_role": {"type": "string", "minLength": 1},
+        "content_hash": {"$ref": "#/$defs/digest"}
+      },
+      "additionalProperties": false
+    },
+    "snapshot_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Snapshot binding only; excluded from event identity."
+    },
+    "snapshot_digest": {"$ref": "#/$defs/digest"},
+    "raw_unit_id": {"type": "string", "pattern": "^raw_[A-Za-z0-9_-]+$"},
+    "source_family": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Runtime display/configuration data; excluded from event identity."
+    },
+    "source_instance": {"type": "string", "minLength": 1},
+    "format_adapter": {"type": "string", "minLength": 1},
+    "normalized_role": {
+      "type": "string",
+      "enum": [
+        "operator",
+        "assistant",
+        "system",
+        "tool",
+        "continuation_summary",
+        "memory_summary",
+        "unknown"
+      ]
+    },
+    "occurred_at": {"type": "string", "format": "date-time"},
+    "authority_class": {
+      "type": "string",
+      "enum": [
+        "operator_intent",
+        "artifact",
+        "transport_echo",
+        "system_metadata",
+        "unknown"
+      ]
+    },
+    "source_envelope_reference": {"type": "string", "minLength": 1},
+    "redacted_content_pointer": {"type": "string", "minLength": 1},
+    "transport_metadata": {
+      "type": "object",
+      "description": "Non-identity metadata such as line number, provider order, source order, or transport position.",
+      "additionalProperties": true
+    },
+    "evidence_references": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"authority_class": {"const": "operator_intent"}},
+        "required": ["authority_class"]
+      },
+      "then": {
+        "properties": {"normalized_role": {"const": "operator"}}
+      }
+    }
+  ],
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    }
+  },
+  "additionalProperties": false
+}

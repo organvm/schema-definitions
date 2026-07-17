@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://meta-organvm.github.io/schema-definitions/source-envelope.v1.schema.json",
+  "title": "Source Envelope v1",
+  "description": "Immutable, provider-neutral registration envelope for a raw source event. Raw bodies remain in private custody.",
+  "type": "object",
+  "required": [
+    "contract_name", "contract_version", "source_id", "source_family", "source_instance",
+    "format_adapter", "custody_snapshot", "native_identifiers", "role", "event_timestamp",
+    "ingestion_timestamp", "authority_class", "body_hash", "private_custody_pointer"
+  ],
+  "properties": {
+    "contract_name": {"const": "source-envelope.v1"},
+    "contract_version": {"const": 1},
+    "source_id": {"type": "string", "pattern": "^src_[A-Za-z0-9_-]+$"},
+    "source_family": {"type": "string", "minLength": 1},
+    "source_instance": {"type": "string", "minLength": 1},
+    "format_adapter": {"type": "string", "minLength": 1},
+    "custody_snapshot": {
+      "type": "object",
+      "required": ["snapshot_id", "captured_at", "snapshot_hash", "custody_pointer", "immutable"],
+      "properties": {
+        "snapshot_id": {"type": "string", "minLength": 1},
+        "captured_at": {"type": "string", "format": "date-time"},
+        "snapshot_hash": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+        "custody_pointer": {"type": "string", "minLength": 1},
+        "immutable": {"const": true}
+      },
+      "additionalProperties": false
+    },
+    "native_identifiers": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {"type": "string", "minLength": 1}
+    },
+    "role": {
+      "type": "string",
+      "enum": ["operator", "assistant", "system", "tool", "continuation_summary", "memory_summary", "unknown"]
+    },
+    "event_timestamp": {"type": "string", "format": "date-time"},
+    "ingestion_timestamp": {"type": "string", "format": "date-time"},
+    "authority_class": {
+      "type": "string",
+      "enum": ["operator_intent", "artifact", "transport_echo", "system_metadata", "unknown"]
+    },
+    "body_hash": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "private_custody_pointer": {"type": "string", "minLength": 1},
+    "historical_branding": {"type": "string"},
+    "redacted_projection_pointer": {"type": "string"},
+    "provider_metadata": {"type": "object", "additionalProperties": true},
+    "attachments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["native_id", "body_hash", "custody_pointer", "status"],
+        "properties": {
+          "native_id": {"type": "string", "minLength": 1},
+          "body_hash": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+          "custody_pointer": {"type": "string", "minLength": 1},
+          "status": {
+            "type": "string",
+            "enum": ["acquired", "parsed", "quarantined", "inaccessible", "missing_expected", "owner_blocked"]
+          }
+        },
+        "additionalProperties": false
+      },
+      "default": []
+    }
+  },
+  "additionalProperties": false
+}

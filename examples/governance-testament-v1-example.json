@@ -1,0 +1,56 @@
+{
+  "contract_name": "governance-testament.v1",
+  "contract_version": 1,
+  "testament_id": "governance-testament-fixture",
+  "version": "1.0.0",
+  "title": "Governed Memory Fixture",
+  "status": "ratified",
+  "directive": "Preserve source authority, reconcile state through bounded events, and render evidence-backed self-knowledge.",
+  "directive_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+  "layers": ["ontology", "cybernetics", "phenomenology"],
+  "instruments": [
+    {"instrument_id": "AMMOI", "reference": "spec://INST-AMMOI", "status": "ratified"},
+    {"instrument_id": "EVENT-SPINE", "reference": "spec://INST-EVENT-SPINE", "status": "partial"}
+  ],
+  "axioms": [
+    {
+      "axiom_id": "AX-FIXTURE-001",
+      "statement": "Operator intent and generated artifacts remain distinct authority lanes.",
+      "citation_references": ["assertion:operator-authority-fixture"]
+    }
+  ],
+  "ideal_form_references": ["ideal-form:governed-memory-fixture"],
+  "ratification": {
+    "ratified_at": "2026-07-16T18:10:00Z",
+    "candidate_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "controlling_formulation": "Preserve source authority, reconcile state through bounded events, and render evidence-backed self-knowledge.",
+    "assertion_evidence_reference": "assertion:operator-authority-fixture",
+    "authority_events": [
+      {
+        "event_id": "evt_c4dd29c0ba4b171d9a7bf4278d2a3742a82a4b1b6b5b1664697d50adc04a992f",
+        "source_envelope_reference": "source:src_provider_renamed_alpha_event_001",
+        "role": "operator",
+        "authority_class": "operator_intent",
+        "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    ],
+    "constitutional_coverage": {
+      "scope_reference": "coverage:constitutional-fixture",
+      "exact_all": true,
+      "blocked_scopes": [],
+      "missing_requirements": [],
+      "ready": true
+    },
+    "constitutional_record_reference": "constitution:amendment-fixture",
+    "source_lineage_references": ["lineage:fixture-prime-directive-lineage"],
+    "approver_reference": "owner_governance_registry"
+  },
+  "predicates": [
+    {
+      "predicate_id": "predicate-fixture-schema",
+      "command": "python scripts/validate.py --all-examples",
+      "expected_result": "all positive examples validate"
+    }
+  ],
+  "citations": ["assertion:operator-authority-fixture"]
+}

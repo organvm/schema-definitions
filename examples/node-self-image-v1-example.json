@@ -1,0 +1,42 @@
+{
+  "contract_name": "node-self-image.v1",
+  "contract_version": 1,
+  "node_id": "ent_repo_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+  "node_type": "repository",
+  "display_name": "${NODE_DISPLAY_NAME}",
+  "owner_reference": "owner_governance_registry",
+  "relations": {
+    "incoming": [],
+    "outgoing": [
+      {
+        "relation_type": "produces",
+        "target_node_id": "ent_module_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+        "evidence_references": ["event:relation-fixture-001"]
+      }
+    ]
+  },
+  "cursors": {"memory": "memory:000042", "event": "event:000117"},
+  "digests": {
+    "constitutional": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "topology": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+  },
+  "observations": [
+    {
+      "key": "implementation_state",
+      "value": "partial",
+      "observed_at": "2026-07-16T18:00:00Z",
+      "evidence_references": ["receipt:node-verifier-fixture"]
+    }
+  ],
+  "active_ideal_forms": [
+    {
+      "form_id": "ideal-form:governed-memory-fixture",
+      "implementation_state": "partial",
+      "distance_to_ideal": 0.4,
+      "predicate_references": ["predicate-fixture-schema"],
+      "evidence_references": ["receipt:node-verifier-fixture"]
+    }
+  ],
+  "reconciled_at": "2026-07-16T18:05:00Z",
+  "evidence_references": ["receipt:node-verifier-fixture"]
+}

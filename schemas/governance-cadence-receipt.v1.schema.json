@@ -1,0 +1,236 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://meta-organvm.github.io/schema-definitions/governance-cadence-receipt.v1.schema.json",
+  "title": "Governance Cadence Receipt v1",
+  "description": "Aggregate receipt binding exactly one completed owner receipt for each ordered governance stage and recording fixed-point replay evidence.",
+  "type": "object",
+  "required": [
+    "contract_name",
+    "contract_version",
+    "cadence_receipt_id",
+    "run_id",
+    "run_number",
+    "snapshot_id",
+    "snapshot_digest",
+    "owner_reference",
+    "started_at",
+    "completed_at",
+    "input_digest",
+    "output_digest",
+    "previous_cadence_receipt_digest",
+    "stage_receipts",
+    "fixed_point",
+    "readiness",
+    "digest_algorithm",
+    "receipt_digest"
+  ],
+  "properties": {
+    "contract_name": {"const": "governance-cadence-receipt.v1"},
+    "contract_version": {"const": 1},
+    "cadence_receipt_id": {"type": "string", "minLength": 1},
+    "run_id": {"type": "string", "minLength": 1},
+    "run_number": {"type": "integer", "minimum": 1},
+    "snapshot_id": {"type": "string", "minLength": 1},
+    "snapshot_digest": {"$ref": "#/$defs/digest"},
+    "owner_reference": {"type": "string", "minLength": 1},
+    "started_at": {"type": "string", "format": "date-time"},
+    "completed_at": {"type": "string", "format": "date-time"},
+    "input_digest": {"$ref": "#/$defs/digest"},
+    "output_digest": {"$ref": "#/$defs/digest"},
+    "previous_cadence_receipt_digest": {
+      "oneOf": [
+        {"$ref": "#/$defs/digest"},
+        {"type": "null"}
+      ]
+    },
+    "stage_receipts": {
+      "type": "array",
+      "minItems": 9,
+      "maxItems": 9,
+      "prefixItems": [
+        {"$ref": "#/$defs/discover_receipt"},
+        {"$ref": "#/$defs/snapshot_receipt"},
+        {"$ref": "#/$defs/parse_receipt"},
+        {"$ref": "#/$defs/classify_receipt"},
+        {"$ref": "#/$defs/reconcile_receipt"},
+        {"$ref": "#/$defs/distill_receipt"},
+        {"$ref": "#/$defs/validate_receipt"},
+        {"$ref": "#/$defs/render_receipt"},
+        {"$ref": "#/$defs/final_receipt"}
+      ],
+      "items": false
+    },
+    "fixed_point": {
+      "type": "object",
+      "required": [
+        "status",
+        "new_event_count",
+        "changed_byte_count",
+        "replayed_completed_children",
+        "output_digest_matches_previous"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["not_applicable", "proven", "changed"]
+        },
+        "new_event_count": {"type": "integer", "minimum": 0},
+        "changed_byte_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Bytes changed in governed outputs relative to the previous run. The newly emitted run-2 proof receipt itself is excluded, avoiding a self-referential fixed-point claim."
+        },
+        "replayed_completed_children": {"type": "integer", "minimum": 0},
+        "output_digest_matches_previous": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "readiness": {"$ref": "#/$defs/readiness"},
+    "digest_algorithm": {
+      "const": "sha256-rfc8785-excluding-self-digest-v1",
+      "description": "RFC 8785 canonical JSON, excluding receipt_digest itself."
+    },
+    "receipt_digest": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "stage_receipt": {
+      "type": "object",
+      "required": [
+        "stage",
+        "stage_receipt_id",
+        "reference",
+        "status",
+        "receipt_digest",
+        "predecessor_receipt_digest"
+      ],
+      "properties": {
+        "stage": {
+          "type": "string",
+          "enum": [
+            "discover",
+            "snapshot",
+            "parse",
+            "classify",
+            "reconcile",
+            "distill",
+            "validate",
+            "render",
+            "receipt"
+          ]
+        },
+        "stage_receipt_id": {"type": "string", "minLength": 1},
+        "reference": {"type": "string", "minLength": 1},
+        "status": {"const": "completed"},
+        "receipt_digest": {"$ref": "#/$defs/digest"},
+        "predecessor_receipt_digest": {
+          "oneOf": [
+            {"$ref": "#/$defs/digest"},
+            {"type": "null"}
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "discover_receipt": {
+      "allOf": [
+        {"$ref": "#/$defs/stage_receipt"},
+        {
+          "properties": {
+            "stage": {"const": "discover"},
+            "predecessor_receipt_digest": {"type": "null"}
+          }
+        }
+      ]
+    },
+    "snapshot_receipt": {
+      "allOf": [
+        {"$ref": "#/$defs/stage_receipt"},
+        {"properties": {"stage": {"const": "snapshot"}}}
+      ]
+    },
+    "parse_receipt": {
+      "allOf": [
+        {"$ref": "#/$defs/stage_receipt"},
+        {"properties": {"stage": {"const": "parse"}}}
+      ]
+    },
+    "classify_receipt": {
+      "allOf": [
+        {"$ref": "#/$defs/stage_receipt"},
+        {"properties": {"stage": {"const": "classify"}}}
+      ]
+    },
+    "reconcile_receipt": {
+      "allOf": [
+        {"$ref": "#/$defs/stage_receipt"},
+        {"properties": {"stage": {"const": "reconcile"}}}
+      ]
+    },
+    "distill_receipt": {
+      "allOf": [
+        {"$ref": "#/$defs/stage_receipt"},
+        {"properties": {"stage": {"const": "distill"}}}
+      ]
+    },
+    "validate_receipt": {
+      "allOf": [
+        {"$ref": "#/$defs/stage_receipt"},
+        {"properties": {"stage": {"const": "validate"}}}
+      ]
+    },
+    "render_receipt": {
+      "allOf": [
+        {"$ref": "#/$defs/stage_receipt"},
+        {"properties": {"stage": {"const": "render"}}}
+      ]
+    },
+    "final_receipt": {
+      "allOf": [
+        {"$ref": "#/$defs/stage_receipt"},
+        {"properties": {"stage": {"const": "receipt"}}}
+      ]
+    },
+    "readiness": {
+      "type": "object",
+      "required": [
+        "exact_all",
+        "unresolved_blockers",
+        "quarantines",
+        "missing_requirements",
+        "citation_debt",
+        "incomplete_predicates",
+        "ready",
+        "status"
+      ],
+      "properties": {
+        "exact_all": {"type": "boolean"},
+        "unresolved_blockers": {"$ref": "#/$defs/debt_list"},
+        "quarantines": {"$ref": "#/$defs/debt_list"},
+        "missing_requirements": {"$ref": "#/$defs/debt_list"},
+        "citation_debt": {"$ref": "#/$defs/debt_list"},
+        "incomplete_predicates": {"$ref": "#/$defs/debt_list"},
+        "ready": {"type": "boolean"},
+        "status": {
+          "type": "string",
+          "enum": [
+            "incomplete",
+            "blocked",
+            "ready",
+            "closed_with_owner_routed_debt"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "debt_list": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    }
+  },
+  "additionalProperties": false
+}

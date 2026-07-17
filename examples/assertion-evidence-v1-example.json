@@ -1,0 +1,26 @@
+{
+  "contract_name": "assertion-evidence.v1",
+  "contract_version": 1,
+  "assertion_id": "assertion_external_fixture_001",
+  "assertion_class": "external_fact",
+  "statement": "The fixture capability is reported by two independent primary records.",
+  "verification_state": "verified",
+  "evidence_references": [
+    {
+      "evidence_id": "evidence_fixture_owner",
+      "independence_group": "fixture-owner-record",
+      "evidence_type": "primary_source",
+      "reference": "https://example.invalid/evidence/owner-record",
+      "body_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "observed_at": "2026-07-16T18:00:00Z"
+    },
+    {
+      "evidence_id": "evidence_fixture_verifier",
+      "independence_group": "independent-verifier-record",
+      "evidence_type": "secondary_source",
+      "reference": "https://example.invalid/evidence/verifier-record",
+      "body_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "observed_at": "2026-07-16T18:01:00Z"
+    }
+  ]
+}

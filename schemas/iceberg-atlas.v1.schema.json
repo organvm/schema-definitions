@@ -1,0 +1,182 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://meta-organvm.github.io/schema-definitions/iceberg-atlas.v1.schema.json",
+  "title": "Iceberg Atlas v1",
+  "description": "Complete assertion-aware governance rendering with two nonempty authority timelines and six populated graph zooms.",
+  "type": "object",
+  "required": [
+    "contract_name",
+    "contract_version",
+    "atlas_id",
+    "snapshot_id",
+    "snapshot_digest",
+    "generated_at",
+    "source_envelope_references",
+    "assertion_evidence_references",
+    "timelines",
+    "zoom_levels",
+    "relationships",
+    "ideal_forms",
+    "self_images",
+    "coverage",
+    "citation_debt",
+    "digest_algorithm",
+    "atlas_digest"
+  ],
+  "properties": {
+    "contract_name": {"const": "iceberg-atlas.v1"},
+    "contract_version": {"const": 1},
+    "atlas_id": {"type": "string", "minLength": 1},
+    "snapshot_id": {"type": "string", "minLength": 1},
+    "snapshot_digest": {"$ref": "#/$defs/digest"},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "source_envelope_references": {"$ref": "#/$defs/nonempty_references"},
+    "assertion_evidence_references": {"$ref": "#/$defs/nonempty_references"},
+    "timelines": {
+      "type": "object",
+      "required": ["operator_intent", "artifact"],
+      "properties": {
+        "operator_intent": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/timeline_entry"}
+        },
+        "artifact": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/timeline_entry"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "zoom_levels": {
+      "type": "object",
+      "required": [
+        "system",
+        "organ",
+        "repository",
+        "document",
+        "session",
+        "atom"
+      ],
+      "properties": {
+        "system": {"$ref": "#/$defs/populated_zoom"},
+        "organ": {"$ref": "#/$defs/populated_zoom"},
+        "repository": {"$ref": "#/$defs/populated_zoom"},
+        "document": {"$ref": "#/$defs/populated_zoom"},
+        "session": {"$ref": "#/$defs/populated_zoom"},
+        "atom": {"$ref": "#/$defs/populated_zoom"}
+      },
+      "additionalProperties": false
+    },
+    "relationships": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "relationship_id",
+          "from_node_id",
+          "to_node_id",
+          "relationship_type",
+          "evidence_references"
+        ],
+        "properties": {
+          "relationship_id": {"type": "string", "minLength": 1},
+          "from_node_id": {"type": "string", "minLength": 1},
+          "to_node_id": {"type": "string", "minLength": 1},
+          "relationship_type": {"type": "string", "minLength": 1},
+          "evidence_references": {"$ref": "#/$defs/nonempty_references"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "ideal_forms": {"$ref": "#/$defs/nonempty_references"},
+    "self_images": {"$ref": "#/$defs/nonempty_references"},
+    "coverage": {
+      "type": "object",
+      "required": [
+        "exact_all",
+        "source_count",
+        "event_count",
+        "node_count",
+        "ideal_form_count"
+      ],
+      "properties": {
+        "exact_all": {"type": "boolean"},
+        "source_count": {"type": "integer", "minimum": 1},
+        "event_count": {"type": "integer", "minimum": 1},
+        "node_count": {"type": "integer", "minimum": 1},
+        "ideal_form_count": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": false
+    },
+    "citation_debt": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "digest_algorithm": {
+      "const": "sha256-rfc8785-excluding-self-digest-v1",
+      "description": "RFC 8785 canonical JSON, excluding atlas_digest itself."
+    },
+    "atlas_digest": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "nonempty_references": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "timeline_entry": {
+      "type": "object",
+      "required": [
+        "entry_id",
+        "event_reference",
+        "occurred_at",
+        "title",
+        "source_envelope_references",
+        "evidence_references"
+      ],
+      "properties": {
+        "entry_id": {"type": "string", "minLength": 1},
+        "event_reference": {"type": "string", "minLength": 1},
+        "occurred_at": {"type": "string", "format": "date-time"},
+        "title": {"type": "string", "minLength": 1},
+        "source_envelope_references": {"$ref": "#/$defs/nonempty_references"},
+        "evidence_references": {"$ref": "#/$defs/nonempty_references"}
+      },
+      "additionalProperties": false
+    },
+    "populated_zoom": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "node_id",
+          "title",
+          "summary",
+          "self_image_reference",
+          "ideal_form_references",
+          "evidence_references"
+        ],
+        "properties": {
+          "node_id": {"type": "string", "minLength": 1},
+          "title": {"type": "string", "minLength": 1},
+          "summary": {"type": "string", "minLength": 1},
+          "self_image_reference": {"type": "string", "minLength": 1},
+          "ideal_form_references": {"$ref": "#/$defs/nonempty_references"},
+          "evidence_references": {"$ref": "#/$defs/nonempty_references"}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

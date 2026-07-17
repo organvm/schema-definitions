@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://meta-organvm.github.io/schema-definitions/normalization-parity-receipt.v1.schema.json",
+  "title": "Normalization Parity Receipt v1",
+  "description": "Complete frozen-snapshot promotion crosswalk. Every census raw unit appears exactly once and maps either to one or more normalized events or to one explicit disposition.",
+  "type": "object",
+  "required": [
+    "contract_name",
+    "contract_version",
+    "receipt_id",
+    "snapshot_id",
+    "snapshot_digest",
+    "generated_at",
+    "input_census",
+    "output_events",
+    "promotions",
+    "readiness",
+    "digest_algorithm",
+    "receipt_digest"
+  ],
+  "properties": {
+    "contract_name": {"const": "normalization-parity-receipt.v1"},
+    "contract_version": {"const": 1},
+    "receipt_id": {"type": "string", "minLength": 1},
+    "snapshot_id": {"type": "string", "minLength": 1},
+    "snapshot_digest": {"$ref": "#/$defs/digest"},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "input_census": {
+      "type": "object",
+      "required": ["census_id", "census_reference", "census_digest", "raw_unit_ids"],
+      "properties": {
+        "census_id": {"type": "string", "minLength": 1},
+        "census_reference": {"type": "string", "minLength": 1},
+        "census_digest": {"$ref": "#/$defs/digest"},
+        "raw_unit_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^raw_[A-Za-z0-9_-]+$"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "output_events": {
+      "type": "object",
+      "required": ["event_set_reference", "event_set_digest", "event_ids"],
+      "properties": {
+        "event_set_reference": {"type": "string", "minLength": 1},
+        "event_set_digest": {"$ref": "#/$defs/digest"},
+        "event_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^evt_[a-f0-9]{64}$"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "promotions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["raw_unit_id"],
+        "properties": {
+          "raw_unit_id": {"type": "string", "pattern": "^raw_[A-Za-z0-9_-]+$"},
+          "event_ids": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {"type": "string", "pattern": "^evt_[a-f0-9]{64}$"}
+          },
+          "disposition": {
+            "type": "object",
+            "required": [
+              "type",
+              "owner_reference",
+              "failed_predicate",
+              "next_action",
+              "evidence_references"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "quarantined",
+                  "blocked",
+                  "ignored_transport_echo",
+                  "unsupported"
+                ]
+              },
+              "owner_reference": {"type": "string", "minLength": 1},
+              "failed_predicate": {"type": "string", "minLength": 1},
+              "next_action": {"type": "string", "minLength": 1},
+              "evidence_references": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {"type": "string", "minLength": 1}
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "oneOf": [
+          {"required": ["event_ids"], "not": {"required": ["disposition"]}},
+          {"required": ["disposition"], "not": {"required": ["event_ids"]}}
+        ],
+        "additionalProperties": false
+      }
+    },
+    "readiness": {"$ref": "#/$defs/readiness"},
+    "digest_algorithm": {
+      "const": "sha256-rfc8785-excluding-self-digest-v1",
+      "description": "RFC 8785 canonical JSON, excluding receipt_digest itself."
+    },
+    "receipt_digest": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "readiness": {
+      "type": "object",
+      "required": [
+        "exact_all",
+        "unresolved_blockers",
+        "quarantines",
+        "missing_requirements",
+        "citation_debt",
+        "incomplete_predicates",
+        "ready",
+        "status"
+      ],
+      "properties": {
+        "exact_all": {"type": "boolean"},
+        "unresolved_blockers": {"$ref": "#/$defs/debt_list"},
+        "quarantines": {"$ref": "#/$defs/debt_list"},
+        "missing_requirements": {"$ref": "#/$defs/debt_list"},
+        "citation_debt": {"$ref": "#/$defs/debt_list"},
+        "incomplete_predicates": {"$ref": "#/$defs/debt_list"},
+        "ready": {"type": "boolean"},
+        "status": {
+          "type": "string",
+          "enum": [
+            "incomplete",
+            "blocked",
+            "ready",
+            "closed_with_owner_routed_debt"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "debt_list": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    }
+  },
+  "additionalProperties": false
+}

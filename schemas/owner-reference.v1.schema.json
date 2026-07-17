@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://meta-organvm.github.io/schema-definitions/owner-reference.v1.schema.json",
+  "title": "Owner Reference v1",
+  "description": "Stable, resolver-neutral reference to the authority that owns an entity, predicate, blocker, or receipt.",
+  "type": "object",
+  "required": ["contract_name", "contract_version", "owner_id", "owner_type", "resolver"],
+  "properties": {
+    "contract_name": {"const": "owner-reference.v1"},
+    "contract_version": {"const": 1},
+    "owner_id": {"type": "string", "minLength": 1},
+    "owner_type": {
+      "type": "string",
+      "enum": ["person", "team", "organ", "repository", "service", "registry", "external_system"]
+    },
+    "display_name": {"type": "string", "minLength": 1},
+    "resolver": {
+      "type": "object",
+      "required": ["kind", "identifier"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["ontologia_uid", "github_repository_id", "registry_key", "uri", "opaque"]
+        },
+        "identifier": {"type": "string", "minLength": 1},
+        "authority_uri": {"type": "string", "format": "uri"},
+        "discovered_at": {"type": "string", "format": "date-time"}
+      },
+      "additionalProperties": false
+    },
+    "aliases": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true,
+      "default": []
+    },
+    "evidence_references": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true,
+      "default": []
+    }
+  },
+  "additionalProperties": false
+}

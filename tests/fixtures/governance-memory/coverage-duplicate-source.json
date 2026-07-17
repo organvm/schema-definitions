@@ -1,0 +1,44 @@
+{
+  "contract_name": "coverage-receipt.v1",
+  "contract_version": 1,
+  "receipt_id": "coverage-negative-duplicate",
+  "snapshot_id": "snapshot-negative-duplicate",
+  "generated_at": "2026-07-16T18:15:00Z",
+  "denominator": {
+    "discovery_manifest_reference": "manifest:negative-duplicate",
+    "count": 2,
+    "manifest_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+  },
+  "sources": [
+    {
+      "source_id": "src_duplicate_fixture",
+      "status": "parsed",
+      "accessible": true,
+      "evidence_references": ["receipt:parse-one"]
+    },
+    {
+      "source_id": "src_duplicate_fixture",
+      "status": "parsed",
+      "accessible": true,
+      "evidence_references": ["receipt:parse-two"]
+    }
+  ],
+  "counts": {
+    "acquired": 0,
+    "parsed": 2,
+    "quarantined": 0,
+    "inaccessible": 0,
+    "missing_expected": 0,
+    "owner_blocked": 0
+  },
+  "exact_all": true,
+  "ready": true,
+  "unresolved_blockers": [],
+  "quarantines": [],
+  "missing_requirements": [],
+  "citation_debt": [],
+  "incomplete_predicates": [],
+  "closure_status": "ready",
+  "residual_owners": [],
+  "receipt_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+}
