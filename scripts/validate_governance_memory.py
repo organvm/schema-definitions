@@ -556,9 +556,12 @@ def _coverage_errors(data: dict[str, Any]) -> list[str]:
         "incomplete_predicates": expected_incomplete_predicates,
     }
     for field, expected in debt_expectations.items():
-        if set(data.get(field, [])) != expected:
+        actual = set(data.get(field, []))
+        missing = expected - actual
+        if missing:
             errors.append(
-                f"{field} must exactly name the source records carrying that debt"
+                f"{field} must include every source record carrying that debt: "
+                + ", ".join(sorted(str(item) for item in missing))
             )
 
     all_debt = [

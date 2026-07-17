@@ -258,6 +258,21 @@ def test_constitutional_scope_ready_does_not_weaken_global_ready():
     )
 
 
+def test_coverage_allows_additional_owner_debt_without_aliasing_ready():
+    data = load(EXAMPLES_DIR / "coverage-receipt-v1-example.json")
+    data["unresolved_blockers"].append(
+        "receipt:normalization-parity-fixture#/readiness/unresolved_blockers"
+    )
+    data["citation_debt"].append("assertion:candidate")
+    data["incomplete_predicates"].append("IF-GOV-001")
+    data["closure_status"] = "closed_with_owner_routed_debt"
+
+    assert semantic_errors(data) == []
+    data["ready"] = True
+    data["closure_status"] = "ready"
+    assert semantic_errors(data)
+
+
 def test_all_parsed_coverage_is_exact_and_ready():
     data = load(EXAMPLES_DIR / "coverage-receipt-v1-example.json")
     data["sources"] = [data["sources"][0]]
