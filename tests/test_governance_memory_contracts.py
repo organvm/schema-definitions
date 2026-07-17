@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
 from pathlib import Path
 
+import rfc8785
 from jsonschema import Draft202012Validator, FormatChecker
 
 from scripts.validate_governance_memory import (
@@ -180,6 +182,21 @@ def test_event_id_is_recomputed_from_native_identity_role_and_content():
     schema_errors, invariant_errors = validate_document(data)
     assert schema_errors == []
     assert any("event_id must equal" in error for error in invariant_errors)
+
+
+def test_event_identity_uses_rfc8785_unicode_key_order() -> None:
+    data = load(EXAMPLES_DIR / "normalized-event-v1-example.json")
+    identifiers = data["identity_basis"]["native_identifiers"]
+    identifiers["\U0001f600"] = "supplementary-plane-key"
+    identifiers["\ue000"] = "private-use-key"
+    data["event_id"] = "evt_" + hashlib.sha256(
+        rfc8785.dumps(data["identity_basis"])
+    ).hexdigest()
+
+    schema_errors, invariant_errors = validate_document(data)
+
+    assert schema_errors == []
+    assert invariant_errors == []
 
 
 def test_normalization_parity_requires_every_census_unit_exactly_once():
