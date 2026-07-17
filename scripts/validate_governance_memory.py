@@ -17,6 +17,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
+import rfc8785
 from jsonschema import Draft202012Validator, FormatChecker
 
 
@@ -211,12 +212,7 @@ def _normalized_event_errors(data: dict[str, Any]) -> list[str]:
             f"fields: {present_forbidden}"
         )
 
-    canonical = json.dumps(
-        basis,
-        ensure_ascii=False,
-        separators=(",", ":"),
-        sort_keys=True,
-    ).encode("utf-8")
+    canonical = rfc8785.dumps(basis)
     expected_event_id = "evt_" + hashlib.sha256(canonical).hexdigest()
     if data.get("event_id") != expected_event_id:
         errors.append(
