@@ -268,6 +268,50 @@ def test_self_image_set_requires_exactly_one_image_per_registered_node():
     assert semantic_errors(data)
 
 
+def test_self_image_registry_denominator_is_public_and_recomputable():
+    data = load(EXAMPLES_DIR / "node-self-image-set-v1-example.json")
+    projection = data["registry_projection"]
+
+    assert data["registry_reference"] == "#/registry_projection"
+    assert data["registered_node_ids"] == [node["uid"] for node in projection]
+    assert data["registry_digest"] == (
+        "sha256:" + hashlib.sha256(rfc8785.dumps(projection)).hexdigest()
+    )
+    assert semantic_errors(data) == []
+
+
+def test_self_image_registry_projection_tampering_fails_digest_binding():
+    data = load(EXAMPLES_DIR / "node-self-image-set-v1-example.json")
+    data["registry_projection"][0]["lifecycle_status"] = "archived"
+
+    assert any(
+        "registry_digest" in error
+        for error in semantic_errors(data)
+    )
+
+
+def test_self_declared_registered_ids_cannot_replace_registry_denominator():
+    data = load(EXAMPLES_DIR / "node-self-image-set-v1-example.json")
+    replacement_id = "ent_repo_01ARZ3NDEKTSV4RRFFQ69G5FAW"
+    data["registered_node_ids"] = [replacement_id]
+    data["self_images"][0]["node_id"] = replacement_id
+
+    assert any(
+        "derive exactly" in error
+        for error in semantic_errors(data)
+    )
+
+
+def test_registry_projection_rejects_private_or_mutable_metadata():
+    data = load(EXAMPLES_DIR / "node-self-image-set-v1-example.json")
+    data["registry_projection"][0]["metadata"] = {
+        "custody_path": "/private/source"
+    }
+
+    schema_errors, _ = validate_document(data)
+    assert schema_errors
+
+
 def test_stage_receipt_enforces_output_and_child_bounds():
     data = load(EXAMPLES_DIR / "governance-stage-receipt-v1-example.json")
     data["outputs"][0]["size_bytes"] = data["execution_limits"]["max_output_bytes"] + 1

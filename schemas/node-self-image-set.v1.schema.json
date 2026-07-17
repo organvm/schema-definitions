@@ -11,6 +11,7 @@
     "snapshot_id",
     "snapshot_digest",
     "registry_reference",
+    "registry_projection",
     "registry_digest",
     "registered_node_ids",
     "self_images",
@@ -25,7 +26,17 @@
     "set_id": {"type": "string", "minLength": 1},
     "snapshot_id": {"type": "string", "minLength": 1},
     "snapshot_digest": {"$ref": "#/$defs/digest"},
-    "registry_reference": {"type": "string", "minLength": 1},
+    "registry_reference": {
+      "const": "#/registry_projection",
+      "description": "In-document JSON Pointer to the public, redacted registry denominator."
+    },
+    "registry_projection": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "Deterministic public projection of the registered entity identities. The semantic validator requires ascending uid order and derives registry_digest and registered_node_ids from this array.",
+      "items": {"$ref": "#/$defs/registry_node"}
+    },
     "registry_digest": {"$ref": "#/$defs/digest"},
     "registered_node_ids": {
       "type": "array",
@@ -58,6 +69,34 @@
     "digest": {
       "type": "string",
       "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "registry_node": {
+      "type": "object",
+      "description": "Privacy-minimal projection of entity-identity.schema.json. Mutable metadata, creator identity, and custody paths are deliberately excluded.",
+      "required": ["uid", "entity_type", "lifecycle_status"],
+      "properties": {
+        "uid": {
+          "type": "string",
+          "pattern": "^ent_[a-z]+_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "entity_type": {
+          "type": "string",
+          "enum": [
+            "organ",
+            "repo",
+            "module",
+            "document",
+            "session",
+            "variable",
+            "metric"
+          ]
+        },
+        "lifecycle_status": {
+          "type": "string",
+          "enum": ["active", "deprecated", "merged", "split", "archived"]
+        }
+      },
+      "additionalProperties": false
     },
     "reference_list": {
       "type": "array",
