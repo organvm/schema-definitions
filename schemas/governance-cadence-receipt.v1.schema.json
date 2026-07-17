@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://meta-organvm.github.io/schema-definitions/governance-cadence-receipt.v1.schema.json",
   "title": "Governance Cadence Receipt v1",
-  "description": "Aggregate receipt binding exactly one completed owner receipt for each ordered governance stage and recording fixed-point replay evidence.",
+  "description": "Aggregate receipt binding exactly one completed owner receipt for each ordered governance stage. Run 1 is an incomplete baseline; only a byte-identical run 2 with proven fixed-point evidence can be exact and ready.",
   "type": "object",
   "required": [
     "contract_name",
@@ -29,7 +29,7 @@
     "contract_version": {"const": 1},
     "cadence_receipt_id": {"type": "string", "minLength": 1},
     "run_id": {"type": "string", "minLength": 1},
-    "run_number": {"type": "integer", "minimum": 1},
+    "run_number": {"type": "integer", "minimum": 1, "maximum": 2},
     "snapshot_id": {"type": "string", "minLength": 1},
     "snapshot_digest": {"$ref": "#/$defs/digest"},
     "owner_reference": {"type": "string", "minLength": 1},
@@ -67,6 +67,7 @@
         "new_event_count",
         "changed_byte_count",
         "replayed_completed_children",
+        "previous_output_digest",
         "output_digest_matches_previous"
       ],
       "properties": {
@@ -81,8 +82,44 @@
           "description": "Bytes changed in governed outputs relative to the previous run. The newly emitted run-2 proof receipt itself is excluded, avoiding a self-referential fixed-point claim."
         },
         "replayed_completed_children": {"type": "integer", "minimum": 0},
+        "previous_output_digest": {
+          "description": "The preceding cadence run's governed-output digest. It is null only for run 1, which has no comparison baseline.",
+          "oneOf": [
+            {"$ref": "#/$defs/digest"},
+            {"type": "null"}
+          ]
+        },
         "output_digest_matches_previous": {"type": "boolean"}
       },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"status": {"const": "proven"}},
+            "required": ["status"]
+          },
+          "then": {
+            "properties": {
+              "new_event_count": {"const": 0},
+              "changed_byte_count": {"const": 0},
+              "replayed_completed_children": {"const": 0},
+              "previous_output_digest": {"$ref": "#/$defs/digest"},
+              "output_digest_matches_previous": {"const": true}
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {"status": {"const": "not_applicable"}},
+            "required": ["status"]
+          },
+          "then": {
+            "properties": {
+              "previous_output_digest": {"type": "null"},
+              "output_digest_matches_previous": {"const": false}
+            }
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "readiness": {"$ref": "#/$defs/readiness"},
@@ -92,6 +129,87 @@
     },
     "receipt_digest": {"$ref": "#/$defs/digest"}
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"run_number": {"const": 1}},
+        "required": ["run_number"]
+      },
+      "then": {
+        "properties": {
+          "previous_cadence_receipt_digest": {"type": "null"},
+          "fixed_point": {
+            "properties": {
+              "status": {"const": "not_applicable"},
+              "previous_output_digest": {"type": "null"},
+              "output_digest_matches_previous": {"const": false}
+            }
+          },
+          "readiness": {
+            "properties": {
+              "exact_all": {"const": false},
+              "ready": {"const": false},
+              "status": {"const": "incomplete"}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"run_number": {"const": 2}},
+        "required": ["run_number"]
+      },
+      "then": {
+        "properties": {
+          "previous_cadence_receipt_digest": {"$ref": "#/$defs/digest"},
+          "fixed_point": {
+            "properties": {
+              "previous_output_digest": {"$ref": "#/$defs/digest"}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "readiness": {
+            "anyOf": [
+              {
+                "properties": {"exact_all": {"const": true}},
+                "required": ["exact_all"]
+              },
+              {
+                "properties": {"ready": {"const": true}},
+                "required": ["ready"]
+              },
+              {
+                "properties": {"status": {"const": "ready"}},
+                "required": ["status"]
+              }
+            ]
+          }
+        },
+        "required": ["readiness"]
+      },
+      "then": {
+        "properties": {
+          "run_number": {"const": 2},
+          "fixed_point": {
+            "properties": {
+              "status": {"const": "proven"},
+              "new_event_count": {"const": 0},
+              "changed_byte_count": {"const": 0},
+              "replayed_completed_children": {"const": 0},
+              "previous_output_digest": {"$ref": "#/$defs/digest"},
+              "output_digest_matches_previous": {"const": true}
+            }
+          }
+        }
+      }
+    }
+  ],
   "$defs": {
     "digest": {
       "type": "string",

@@ -374,6 +374,67 @@ def test_cadence_receipt_requires_exact_predecessor_hash_chain():
     assert semantic_errors(data)
 
 
+def test_cadence_run_one_is_valid_only_as_an_incomplete_first_traversal():
+    data = load(EXAMPLES_DIR / "governance-cadence-receipt-v1-example.json")
+    data["run_number"] = 1
+    data["previous_cadence_receipt_digest"] = None
+    data["fixed_point"] = {
+        "status": "not_applicable",
+        "new_event_count": 999,
+        "changed_byte_count": 999,
+        "replayed_completed_children": 0,
+        "previous_output_digest": None,
+        "output_digest_matches_previous": False,
+    }
+    data["readiness"]["exact_all"] = False
+    data["readiness"]["ready"] = False
+    data["readiness"]["status"] = "incomplete"
+
+    assert validate_document(data) == ([], [])
+
+    data["readiness"]["exact_all"] = True
+    data["readiness"]["ready"] = True
+    data["readiness"]["status"] = "ready"
+    schema_errors, invariant_errors = validate_document(data)
+    assert schema_errors
+    assert invariant_errors
+
+
+def test_cadence_false_ready_rejects_nonzero_fixed_point_counts():
+    data = load(EXAMPLES_DIR / "governance-cadence-receipt-v1-example.json")
+    data["fixed_point"]["new_event_count"] = 999
+
+    schema_errors, invariant_errors = validate_document(data)
+    assert schema_errors
+    assert invariant_errors
+
+
+def test_cadence_run_two_ready_binds_the_previous_output_digest():
+    data = load(EXAMPLES_DIR / "governance-cadence-receipt-v1-example.json")
+    data["fixed_point"]["previous_output_digest"] = (
+        "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    )
+
+    schema_errors, invariant_errors = validate_document(data)
+    assert schema_errors == []
+    assert any("output_digest_matches_previous" in error for error in invariant_errors)
+
+
+def test_cadence_changed_second_traversal_is_honestly_incomplete():
+    data = load(EXAMPLES_DIR / "governance-cadence-receipt-v1-example.json")
+    data["output_digest"] = (
+        "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    )
+    data["fixed_point"]["status"] = "changed"
+    data["fixed_point"]["changed_byte_count"] = 999
+    data["fixed_point"]["output_digest_matches_previous"] = False
+    data["readiness"]["exact_all"] = False
+    data["readiness"]["ready"] = False
+    data["readiness"]["status"] = "incomplete"
+
+    assert validate_document(data) == ([], [])
+
+
 def test_snapshot_bundle_ready_requires_two_runs_and_post_proof_fixed_point():
     data = load(EXAMPLES_DIR / "governance-snapshot-bundle-v1-example.json")
     data["governance_cadence_receipts"].pop()

@@ -1171,18 +1171,34 @@ def _governance_cadence_receipt_errors(data: dict[str, Any]) -> list[str]:
 
     run_number = data.get("run_number")
     previous_digest = data.get("previous_cadence_receipt_digest")
+    previous_output_digest = fixed_point.get("previous_output_digest")
     if run_number == 1 and previous_digest is not None:
         errors.append("cadence run 1 must not name a previous cadence receipt")
     if isinstance(run_number, int) and run_number > 1 and previous_digest is None:
         errors.append("cadence runs after run 1 must bind the previous cadence receipt")
+    if run_number == 1 and previous_output_digest is not None:
+        errors.append("cadence run 1 must not name a previous output digest")
+    if run_number == 2 and previous_output_digest is None:
+        errors.append("cadence run 2 must bind the previous output digest")
+
+    output_matches_previous = (
+        previous_output_digest is not None
+        and previous_output_digest == data.get("output_digest")
+    )
+    if fixed_point.get("output_digest_matches_previous") is not output_matches_previous:
+        errors.append(
+            "fixed_point.output_digest_matches_previous must equal the comparison "
+            "between fixed_point.previous_output_digest and output_digest"
+        )
 
     fixed_status = fixed_point.get("status")
     fixed_proven = (
-        fixed_status == "proven"
+        run_number == 2
+        and fixed_status == "proven"
         and fixed_point.get("new_event_count") == 0
         and fixed_point.get("changed_byte_count") == 0
         and fixed_point.get("replayed_completed_children") == 0
-        and fixed_point.get("output_digest_matches_previous") is True
+        and output_matches_previous
     )
     if fixed_status == "proven" and not fixed_proven:
         errors.append(
@@ -1191,8 +1207,6 @@ def _governance_cadence_receipt_errors(data: dict[str, Any]) -> list[str]:
         )
     if previous_digest is None and fixed_status != "not_applicable":
         errors.append("the first cadence run fixed point must be not_applicable")
-    if previous_digest is not None and not fixed_proven:
-        errors.append("a repeated cadence run must prove the fixed point")
 
     all_completed = all(
         isinstance(receipt, dict) and receipt.get("status") == "completed"
@@ -1203,13 +1217,13 @@ def _governance_cadence_receipt_errors(data: dict[str, Any]) -> list[str]:
         and chain_complete
         and not duplicate_receipts
         and len(stage_receipts) == len(CADENCE_STAGES)
+        and fixed_proven
     )
     errors.extend(
         _readiness_errors(
             data,
             exact_all=exact_all,
-            prerequisites_ready=all_completed
-            and (previous_digest is None or fixed_proven),
+            prerequisites_ready=all_completed and fixed_proven,
         )
     )
     return errors

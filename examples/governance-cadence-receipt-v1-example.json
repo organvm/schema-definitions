@@ -91,6 +91,7 @@
     "new_event_count": 0,
     "changed_byte_count": 0,
     "replayed_completed_children": 0,
+    "previous_output_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
     "output_digest_matches_previous": true
   },
   "readiness": {
