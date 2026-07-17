@@ -15,6 +15,7 @@
   "snapshot_id": "snapshot-fixture-20260716",
   "snapshot_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "raw_unit_id": "raw_fixture_event_001",
+  "raw_unit_content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
   "source_family": "runtime-provider-alpha",
   "source_instance": "workspace-fixture-01",
   "format_adapter": "jsonl-role-events-v3",

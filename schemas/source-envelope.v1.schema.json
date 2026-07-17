@@ -6,7 +6,8 @@
   "type": "object",
   "required": [
     "contract_name", "contract_version", "source_id", "source_family", "source_instance",
-    "format_adapter", "custody_snapshot", "native_identifiers", "role", "event_timestamp",
+    "format_adapter", "raw_unit_id", "raw_unit_content_hash", "custody_snapshot",
+    "native_identifiers", "role", "event_timestamp",
     "ingestion_timestamp", "authority_class", "body_hash", "private_custody_pointer"
   ],
   "properties": {
@@ -16,6 +17,11 @@
     "source_family": {"type": "string", "minLength": 1},
     "source_instance": {"type": "string", "minLength": 1},
     "format_adapter": {"type": "string", "minLength": 1},
+    "raw_unit_id": {"type": "string", "pattern": "^raw_[A-Za-z0-9_-]+$"},
+    "raw_unit_content_hash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
     "custody_snapshot": {
       "type": "object",
       "required": ["snapshot_id", "captured_at", "snapshot_hash", "custody_pointer", "immutable"],

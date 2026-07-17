@@ -5,6 +5,8 @@
   "source_family": "provider-renamed-alpha",
   "source_instance": "workspace-fixture-01",
   "format_adapter": "jsonl-role-events-v3",
+  "raw_unit_id": "raw_fixture_event_001",
+  "raw_unit_content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
   "custody_snapshot": {
     "snapshot_id": "snapshot-fixture-20260716",
     "captured_at": "2026-07-16T18:00:00Z",

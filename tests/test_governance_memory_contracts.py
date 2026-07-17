@@ -216,6 +216,7 @@ def test_normalization_parity_requires_every_census_unit_exactly_once():
     extra["promotions"].append(
         {
             "raw_unit_id": "raw_not_in_census",
+            "raw_unit_content_hash": None,
             "disposition": {
                 "type": "ignored_transport_echo",
                 "owner_reference": "owner_normalizer",
@@ -226,6 +227,44 @@ def test_normalization_parity_requires_every_census_unit_exactly_once():
         }
     )
     assert semantic_errors(extra)
+
+
+def test_normalization_parity_binds_each_promotion_to_census_content_identity():
+    baseline = load(
+        EXAMPLES_DIR / "normalization-parity-receipt-v1-example.json"
+    )
+
+    mismatch = copy.deepcopy(baseline)
+    mismatch["promotions"][0]["raw_unit_content_hash"] = (
+        "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    )
+    schema_errors, invariant_errors = validate_document(mismatch)
+    assert schema_errors == []
+    assert any("do not match input_census.raw_units" in error for error in invariant_errors)
+
+    duplicate = copy.deepcopy(baseline)
+    duplicate["input_census"]["raw_units"].append(
+        copy.deepcopy(duplicate["input_census"]["raw_units"][0])
+    )
+    assert semantic_errors(duplicate)
+
+
+def test_promoted_contracts_require_raw_unit_content_identity():
+    for example_name in (
+        "source-envelope-v1-example.json",
+        "normalized-event-v1-example.json",
+    ):
+        candidate = load(EXAMPLES_DIR / example_name)
+        candidate.pop("raw_unit_content_hash")
+        schema_errors, _ = validate_document(candidate)
+        assert schema_errors, example_name
+
+    parity = load(
+        EXAMPLES_DIR / "normalization-parity-receipt-v1-example.json"
+    )
+    parity["promotions"][0].pop("raw_unit_content_hash")
+    schema_errors, _ = validate_document(parity)
+    assert schema_errors
 
 
 def test_parity_owner_routed_debt_can_be_exact_but_never_ready():

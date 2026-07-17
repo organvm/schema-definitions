@@ -238,9 +238,26 @@ def _normalization_parity_errors(data: dict[str, Any]) -> list[str]:
         return errors
 
     raw_unit_ids = input_census.get("raw_unit_ids")
+    raw_units = input_census.get("raw_units")
     output_event_ids = output_events.get("event_ids")
-    if not isinstance(raw_unit_ids, list) or not isinstance(output_event_ids, list):
+    if (
+        not isinstance(raw_unit_ids, list)
+        or not isinstance(raw_units, list)
+        or not isinstance(output_event_ids, list)
+    ):
         return errors
+
+    raw_unit_binding_ids = [
+        raw_unit.get("raw_unit_id")
+        for raw_unit in raw_units
+        if isinstance(raw_unit, dict)
+    ]
+    duplicate_bindings = _duplicates(raw_unit_binding_ids)
+    if duplicate_bindings:
+        errors.append(
+            "input_census.raw_units contains duplicate raw_unit_id values: "
+            f"{duplicate_bindings}"
+        )
 
     promotion_ids = [
         promotion.get("raw_unit_id")
@@ -256,6 +273,28 @@ def _normalization_parity_errors(data: dict[str, Any]) -> list[str]:
 
     raw_unit_id_set = {
         value for value in raw_unit_ids if isinstance(value, str)
+    }
+    raw_unit_binding_id_set = {
+        value for value in raw_unit_binding_ids if isinstance(value, str)
+    }
+    missing_bindings = sorted(raw_unit_id_set - raw_unit_binding_id_set)
+    extra_bindings = sorted(raw_unit_binding_id_set - raw_unit_id_set)
+    if missing_bindings:
+        errors.append(
+            "input_census.raw_units omits raw_unit_ids values: "
+            f"{missing_bindings}"
+        )
+    if extra_bindings:
+        errors.append(
+            "input_census.raw_units contains raw_unit_id values outside raw_unit_ids: "
+            f"{extra_bindings}"
+        )
+
+    raw_unit_content_hashes = {
+        raw_unit.get("raw_unit_id"): raw_unit.get("content_hash")
+        for raw_unit in raw_units
+        if isinstance(raw_unit, dict)
+        and isinstance(raw_unit.get("raw_unit_id"), str)
     }
     promotion_id_set = {
         value for value in promotion_ids if isinstance(value, str)
@@ -273,15 +312,30 @@ def _normalization_parity_errors(data: dict[str, Any]) -> list[str]:
 
     promoted_event_ids: set[Any] = set()
     disposition_types: dict[Any, Any] = {}
+    content_binding_mismatches: list[str] = []
     for promotion in promotions:
         if not isinstance(promotion, dict):
             continue
+        raw_unit_id = promotion.get("raw_unit_id")
+        if (
+            isinstance(raw_unit_id, str)
+            and raw_unit_id in raw_unit_content_hashes
+            and promotion.get("raw_unit_content_hash")
+            != raw_unit_content_hashes[raw_unit_id]
+        ):
+            content_binding_mismatches.append(raw_unit_id)
         event_ids = promotion.get("event_ids")
         if isinstance(event_ids, list):
             promoted_event_ids.update(event_ids)
         disposition = promotion.get("disposition")
         if isinstance(disposition, dict):
             disposition_types[promotion.get("raw_unit_id")] = disposition.get("type")
+    if content_binding_mismatches:
+        errors.append(
+            "promotions contain raw_unit_content_hash values that do not match "
+            "input_census.raw_units: "
+            f"{sorted(content_binding_mismatches)}"
+        )
 
     output_event_id_set = {
         value for value in output_event_ids if isinstance(value, str)
@@ -329,8 +383,12 @@ def _normalization_parity_errors(data: dict[str, Any]) -> list[str]:
 
     exact_all = (
         not duplicate_promotions
+        and not duplicate_bindings
+        and not missing_bindings
+        and not extra_bindings
         and not missing_promotions
         and not extra_promotions
+        and not content_binding_mismatches
         and not missing_output_events
         and not extra_output_events
     )
