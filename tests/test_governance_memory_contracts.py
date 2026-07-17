@@ -291,6 +291,33 @@ def test_verified_operator_directive_requires_source_event_and_ratification():
     assert semantic_errors(data)
 
 
+def test_ratified_operator_directive_accepts_event_bound_freshness():
+    data = load(EXAMPLES_DIR / "assertion-evidence-v1-example.json")
+    data["assertion_class"] = "operator_directive"
+    data["evidence_references"][0]["evidence_type"] = "immutable_source_event"
+    data["evidence_references"][1][
+        "evidence_type"
+    ] = "ratified_constitutional_record"
+    data["freshness"] = {
+        "verified_at": "2026-07-17T08:39:10Z",
+        "status": "not_applicable",
+    }
+    assert validate_document(data) == ([], [])
+
+
+def test_verified_operator_directive_rejects_missing_or_stale_freshness():
+    data = load(EXAMPLES_DIR / "assertion-evidence-v1-example.json")
+    data["assertion_class"] = "operator_directive"
+    assert validate_document(data)[0]
+
+    data["freshness"] = {
+        "verified_at": "2026-07-17T08:39:10Z",
+        "max_age_seconds": 1,
+        "status": "stale",
+    }
+    assert semantic_errors(data)
+
+
 def test_verified_current_state_requires_owner_fresh_verifier_and_freshness():
     data = load(EXAMPLES_DIR / "assertion-evidence-v1-example.json")
     data["assertion_class"] = "current_state"

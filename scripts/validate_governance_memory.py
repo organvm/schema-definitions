@@ -648,6 +648,14 @@ def _assertion_errors(data: dict[str, Any]) -> list[str]:
                 "a verified operator_directive is missing evidence types: "
                 + ", ".join(missing)
             )
+        freshness = data.get("freshness")
+        if not isinstance(freshness, dict) or freshness.get("status") not in {
+            "fresh",
+            "not_applicable",
+        }:
+            errors.append(
+                "a verified operator_directive requires non-stale freshness"
+            )
     if assertion_class == "current_state":
         required = {"owner_record", "fresh_verifier_receipt"}
         missing = sorted(required - evidence_types)
