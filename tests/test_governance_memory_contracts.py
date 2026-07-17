@@ -79,6 +79,60 @@ def test_provider_names_are_runtime_data_not_a_fixed_catalog():
         assert list(validator.iter_errors(candidate)) == []
 
 
+def test_required_source_expectation_cannot_disappear_from_census():
+    data = load(EXAMPLES_DIR / "source-census-v1-example.json")
+    data["raw_units"] = [
+        raw_unit
+        for raw_unit in data["raw_units"]
+        if raw_unit.get("expectation_id") != "expectation-owner-export"
+    ]
+
+    schema_errors, invariant_errors = validate_document(data)
+    assert schema_errors == []
+    assert any(
+        "must be represented by exactly one raw_unit.expectation_id" in error
+        for error in invariant_errors
+    )
+
+
+def test_required_source_expectation_is_represented_exactly_once():
+    data = load(EXAMPLES_DIR / "source-census-v1-example.json")
+    duplicate = copy.deepcopy(data["raw_units"][1])
+    duplicate["raw_unit_id"] = "raw_fixture_expected_duplicate"
+    data["raw_units"].append(duplicate)
+
+    schema_errors, invariant_errors = validate_document(data)
+    assert schema_errors == []
+    assert any(
+        "must be represented by exactly one raw_unit.expectation_id" in error
+        for error in invariant_errors
+    )
+
+
+def test_expected_raw_unit_must_retain_configured_source_family():
+    data = load(EXAMPLES_DIR / "source-census-v1-example.json")
+    data["raw_units"][1]["source_family"] = "runtime-provider-mismatch"
+
+    schema_errors, invariant_errors = validate_document(data)
+    assert schema_errors == []
+    assert any(
+        "source_family must match seed expectation" in error
+        for error in invariant_errors
+    )
+
+
+def test_required_provider_family_is_configuration_only_and_status_neutral():
+    baseline = load(EXAMPLES_DIR / "source-census-v1-example.json")
+    family = "provider-added-or-renamed-without-code-change"
+    baseline["seed_expectations"][0]["source_family"] = family
+    baseline["raw_units"][1]["source_family"] = family
+
+    for status in ("inaccessible", "missing_expected", "blocked"):
+        candidate = copy.deepcopy(baseline)
+        candidate["raw_units"][1]["acquisition_status"] = status
+        assert validate_document(candidate) == ([], [])
+
+
 def test_assistant_plan_is_rejected_from_operator_intent_lane():
     data = load(EXAMPLES_DIR / "lineage-graph-v1-example.json")
     schema = load(SCHEMAS_DIR / "lineage-graph.v1.schema.json")

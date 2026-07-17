@@ -164,6 +164,12 @@ def _source_census_errors(data: dict[str, Any]) -> list[str]:
             f"{duplicate_expectations}"
         )
     known_expectations = set(expectation_ids)
+    expectations_by_id = {
+        item.get("expectation_id"): item
+        for item in expectations or []
+        if isinstance(item, dict)
+        and isinstance(item.get("expectation_id"), str)
+    }
 
     raw_unit_ids = [
         item.get("raw_unit_id") for item in raw_units if isinstance(item, dict)
@@ -171,6 +177,22 @@ def _source_census_errors(data: dict[str, Any]) -> list[str]:
     duplicate_units = _duplicates(raw_unit_ids)
     if duplicate_units:
         errors.append(f"raw_units contain duplicate raw_unit_id values: {duplicate_units}")
+
+    raw_expectation_ids = [
+        item.get("expectation_id")
+        for item in raw_units
+        if isinstance(item, dict) and item.get("expectation_id") is not None
+    ]
+    raw_expectation_counts = Counter(raw_expectation_ids)
+    for expectation_id, expectation in expectations_by_id.items():
+        if (
+            expectation.get("required") is True
+            and raw_expectation_counts.get(expectation_id, 0) != 1
+        ):
+            errors.append(
+                f"required seed expectation {expectation_id!r} must be represented "
+                "by exactly one raw_unit.expectation_id"
+            )
 
     for raw_unit in raw_units:
         if not isinstance(raw_unit, dict):
@@ -184,6 +206,15 @@ def _source_census_errors(data: dict[str, Any]) -> list[str]:
         if expectation_id is not None and expectation_id not in known_expectations:
             errors.append(
                 f"raw unit {raw_unit_id!r} references an unknown expectation_id"
+            )
+        expectation = expectations_by_id.get(expectation_id)
+        if (
+            isinstance(expectation, dict)
+            and raw_unit.get("source_family") != expectation.get("source_family")
+        ):
+            errors.append(
+                f"raw unit {raw_unit_id!r} source_family must match seed expectation "
+                f"{expectation_id!r}"
             )
     return errors
 
