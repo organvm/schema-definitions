@@ -34,6 +34,13 @@
     "missing_expected": 0,
     "owner_blocked": 1
   },
+  "constitutional_scope": {
+    "scope_reference": "scope:governance-constitutional-authority:fixture-20260716",
+    "exact_all": true,
+    "blocked_scopes": [],
+    "missing_requirements": [],
+    "ready": true
+  },
   "exact_all": true,
   "ready": false,
   "unresolved_blockers": ["src_provider_new_beta_expected_001"],

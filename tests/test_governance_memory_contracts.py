@@ -159,7 +159,103 @@ def test_exact_coverage_can_retain_explicit_blocker_debt_without_being_ready():
     data = load(EXAMPLES_DIR / "coverage-receipt-v1-example.json")
     assert data["exact_all"] is True
     assert data["ready"] is False
+    assert data["constitutional_scope"]["exact_all"] is True
+    assert data["constitutional_scope"]["ready"] is True
     assert semantic_errors(data) == []
+
+
+def test_coverage_requires_a_separately_typed_constitutional_scope():
+    data = load(EXAMPLES_DIR / "coverage-receipt-v1-example.json")
+    data.pop("constitutional_scope")
+
+    schema_errors, _ = validate_document(data)
+    assert schema_errors
+
+
+def test_constitutional_scope_ready_is_schema_level_if_and_only_if():
+    baseline = load(EXAMPLES_DIR / "coverage-receipt-v1-example.json")
+    invalid_scopes = (
+        {
+            "scope_reference": "scope:constitutional:not-exact",
+            "exact_all": False,
+            "blocked_scopes": [],
+            "missing_requirements": [],
+            "ready": True,
+        },
+        {
+            "scope_reference": "scope:constitutional:blocked",
+            "exact_all": True,
+            "blocked_scopes": ["scope:operator-authority"],
+            "missing_requirements": [],
+            "ready": True,
+        },
+        {
+            "scope_reference": "scope:constitutional:missing",
+            "exact_all": True,
+            "blocked_scopes": [],
+            "missing_requirements": ["requirement:ratification-evidence"],
+            "ready": True,
+        },
+        {
+            "scope_reference": "scope:constitutional:false-negative",
+            "exact_all": True,
+            "blocked_scopes": [],
+            "missing_requirements": [],
+            "ready": False,
+        },
+    )
+
+    for scope in invalid_scopes:
+        candidate = copy.deepcopy(baseline)
+        candidate["constitutional_scope"] = scope
+        schema_errors, _ = validate_document(candidate)
+        assert schema_errors, scope["scope_reference"]
+
+
+def test_constitutional_scope_non_ready_states_require_explicit_scope_debt():
+    baseline = load(EXAMPLES_DIR / "coverage-receipt-v1-example.json")
+    valid_scopes = (
+        {
+            "scope_reference": "scope:constitutional:not-exact",
+            "exact_all": False,
+            "blocked_scopes": [],
+            "missing_requirements": [],
+            "ready": False,
+        },
+        {
+            "scope_reference": "scope:constitutional:blocked",
+            "exact_all": True,
+            "blocked_scopes": ["scope:operator-authority"],
+            "missing_requirements": [],
+            "ready": False,
+        },
+        {
+            "scope_reference": "scope:constitutional:missing",
+            "exact_all": True,
+            "blocked_scopes": [],
+            "missing_requirements": ["requirement:ratification-evidence"],
+            "ready": False,
+        },
+    )
+
+    for scope in valid_scopes:
+        candidate = copy.deepcopy(baseline)
+        candidate["constitutional_scope"] = scope
+        assert validate_document(candidate) == ([], []), scope["scope_reference"]
+
+
+def test_constitutional_scope_ready_does_not_weaken_global_ready():
+    data = load(EXAMPLES_DIR / "coverage-receipt-v1-example.json")
+    assert data["constitutional_scope"]["ready"] is True
+
+    data["ready"] = True
+    data["closure_status"] = "ready"
+    _, invariant_errors = validate_document(data)
+    assert any(
+        "ready must be true exactly when exact_all is true and every source is parsed"
+        in error
+        for error in invariant_errors
+    )
 
 
 def test_all_parsed_coverage_is_exact_and_ready():

@@ -439,6 +439,19 @@ def _normalization_parity_errors(data: dict[str, Any]) -> list[str]:
 
 def _coverage_errors(data: dict[str, Any]) -> list[str]:
     errors: list[str] = []
+    constitutional_scope = data.get("constitutional_scope")
+    if isinstance(constitutional_scope, dict):
+        expected_constitutional_ready = (
+            constitutional_scope.get("exact_all") is True
+            and not constitutional_scope.get("blocked_scopes")
+            and not constitutional_scope.get("missing_requirements")
+        )
+        if constitutional_scope.get("ready") is not expected_constitutional_ready:
+            errors.append(
+                "constitutional_scope.ready must be true exactly when its scope is "
+                "exact and has no blocked scopes or missing requirements"
+            )
+
     sources = data.get("sources")
     denominator = data.get("denominator")
     counts = data.get("counts")
