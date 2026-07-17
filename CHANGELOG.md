@@ -2,13 +2,22 @@
 
 ## Unreleased
 
-- Add eight governance-memory v1 contracts for source custody projections,
-  dual-lane lineage, governance testament, assertion evidence, node self-images,
-  exact coverage, owner resolution, and typed parameters.
+- Add eighteen governance-memory v1 contracts for source custody projections,
+  dynamic source census, stable normalized events, complete normalization
+  parity, dual-lane lineage, governance testament, assertion evidence,
+  receipt-derived ideals, node self-images, Iceberg Atlas rendering, bounded
+  nine-stage cadence, frozen snapshot bundles, exact coverage, owner
+  resolution, and typed parameters.
 - Add provider-neutral examples and semantic validation for exact coverage,
-  evidence independence, reviewed adoption, and secret-reference safety.
+  stable identity, promotion crosswalks, evidence independence, reviewed
+  adoption, candidate/ratification gates, self-image completeness, stage
+  bounds, receipt chaining, two-run fixed points, and secret-reference safety.
 - Define `exact_all` as exactly-once classification of the frozen denominator;
-  expose `ready` separately so classified inaccessible sources retain owner debt.
+  expose `ready` separately so classified inaccessible sources retain owner
+  debt, and prohibit `closed_with_owner_routed_debt` from aliasing readiness.
+- Require candidate testaments to omit ratification and ratified testaments to
+  bind immutable operator events, assertion evidence, the candidate digest,
+  controlling formulation, and unblocked constitutional coverage.
 - Add regression fixtures proving renamed and newly introduced providers require
   configuration changes only.
 

@@ -10,6 +10,7 @@ two independent evidence groups.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from collections import Counter
@@ -23,6 +24,16 @@ ROOT = Path(__file__).resolve().parent.parent
 SCHEMAS_DIR = ROOT / "schemas"
 
 CONTRACT_TO_SCHEMA = {
+    "source-census.v1": "source-census.v1.schema.json",
+    "normalized-event.v1": "normalized-event.v1.schema.json",
+    "normalization-parity-receipt.v1": "normalization-parity-receipt.v1.schema.json",
+    "ideal-form-register.v1": "ideal-form-register.v1.schema.json",
+    "iceberg-atlas.v1": "iceberg-atlas.v1.schema.json",
+    "node-self-image-set.v1": "node-self-image-set.v1.schema.json",
+    "governance-stage-receipt.v1": "governance-stage-receipt.v1.schema.json",
+    "governance-cadence-receipt.v1": "governance-cadence-receipt.v1.schema.json",
+    "governance-atlas-receipt.v1": "governance-atlas-receipt.v1.schema.json",
+    "governance-snapshot-bundle.v1": "governance-snapshot-bundle.v1.schema.json",
     "owner-reference.v1": "owner-reference.v1.schema.json",
     "parameter-contract.v1": "parameter-contract.v1.schema.json",
     "source-envelope.v1": "source-envelope.v1.schema.json",
@@ -42,11 +53,303 @@ SOURCE_STATUSES = (
     "owner_blocked",
 )
 
+CADENCE_STAGES = (
+    "discover",
+    "snapshot",
+    "parse",
+    "classify",
+    "reconcile",
+    "distill",
+    "validate",
+    "render",
+    "receipt",
+)
+
+READINESS_DEBT_FIELDS = (
+    "unresolved_blockers",
+    "quarantines",
+    "missing_requirements",
+    "citation_debt",
+    "incomplete_predicates",
+)
+
 
 def load_json(path: Path) -> Any:
     """Load one JSON document."""
     with path.open(encoding="utf-8") as handle:
         return json.load(handle)
+
+
+def _duplicates(values: list[Any]) -> list[Any]:
+    """Return sorted, non-null duplicate values."""
+    return sorted(
+        value
+        for value, count in Counter(values).items()
+        if value is not None and count > 1
+    )
+
+
+def _readiness_errors(
+    data: dict[str, Any],
+    *,
+    exact_all: bool,
+    prerequisites_ready: bool = True,
+) -> list[str]:
+    """Recompute the shared truth-first readiness predicate."""
+    readiness = data.get("readiness")
+    if not isinstance(readiness, dict):
+        return []
+
+    errors: list[str] = []
+    if readiness.get("exact_all") is not exact_all:
+        errors.append(
+            f"readiness.exact_all must be {exact_all!r} for the classified contract content"
+        )
+
+    debt_items: list[Any] = []
+    for field in READINESS_DEBT_FIELDS:
+        value = readiness.get(field)
+        if isinstance(value, list):
+            debt_items.extend(value)
+
+    expected_ready = exact_all and prerequisites_ready and not debt_items
+    if readiness.get("ready") is not expected_ready:
+        errors.append(
+            "readiness.ready must be true exactly when exact_all is true, all "
+            "contract prerequisites pass, and blocker, quarantine, requirement, "
+            "citation, and predicate debt are empty"
+        )
+
+    status = readiness.get("status")
+    if (status == "ready") is not expected_ready:
+        errors.append(
+            "readiness.status may be 'ready' exactly when readiness.ready is true"
+        )
+    if status == "closed_with_owner_routed_debt":
+        if readiness.get("ready") is not False:
+            errors.append(
+                "closed_with_owner_routed_debt must never alias readiness.ready"
+            )
+        if not debt_items:
+            errors.append(
+                "closed_with_owner_routed_debt requires explicit owner-routed debt"
+            )
+    return errors
+
+
+def _source_census_errors(data: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    roots = data.get("discovery_roots")
+    expectations = data.get("seed_expectations")
+    raw_units = data.get("raw_units")
+    if not isinstance(roots, list) or not isinstance(raw_units, list):
+        return errors
+
+    root_ids = [item.get("root_id") for item in roots if isinstance(item, dict)]
+    duplicate_roots = _duplicates(root_ids)
+    if duplicate_roots:
+        errors.append(f"discovery_roots contain duplicate root_id values: {duplicate_roots}")
+    known_roots = set(root_ids)
+
+    expectation_ids = [
+        item.get("expectation_id")
+        for item in expectations or []
+        if isinstance(item, dict)
+    ]
+    duplicate_expectations = _duplicates(expectation_ids)
+    if duplicate_expectations:
+        errors.append(
+            "seed_expectations contain duplicate expectation_id values: "
+            f"{duplicate_expectations}"
+        )
+    known_expectations = set(expectation_ids)
+
+    raw_unit_ids = [
+        item.get("raw_unit_id") for item in raw_units if isinstance(item, dict)
+    ]
+    duplicate_units = _duplicates(raw_unit_ids)
+    if duplicate_units:
+        errors.append(f"raw_units contain duplicate raw_unit_id values: {duplicate_units}")
+
+    for raw_unit in raw_units:
+        if not isinstance(raw_unit, dict):
+            continue
+        raw_unit_id = raw_unit.get("raw_unit_id", "<unknown>")
+        if raw_unit.get("discovery_root_id") not in known_roots:
+            errors.append(
+                f"raw unit {raw_unit_id!r} references an unknown discovery_root_id"
+            )
+        expectation_id = raw_unit.get("expectation_id")
+        if expectation_id is not None and expectation_id not in known_expectations:
+            errors.append(
+                f"raw unit {raw_unit_id!r} references an unknown expectation_id"
+            )
+    return errors
+
+
+def _normalized_event_errors(data: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    basis = data.get("identity_basis")
+    if not isinstance(basis, dict):
+        return errors
+
+    forbidden_identity_fields = {
+        "snapshot_id",
+        "snapshot_digest",
+        "line_number",
+        "source_order",
+        "provider_order",
+        "transport_position",
+        "source_family",
+        "source_instance",
+        "format_adapter",
+    }
+    present_forbidden = sorted(forbidden_identity_fields.intersection(basis))
+    if present_forbidden:
+        errors.append(
+            "identity_basis contains transport, snapshot, order, or provider display "
+            f"fields: {present_forbidden}"
+        )
+
+    canonical = json.dumps(
+        basis,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+    expected_event_id = "evt_" + hashlib.sha256(canonical).hexdigest()
+    if data.get("event_id") != expected_event_id:
+        errors.append(
+            "event_id must equal sha256(canonical identity_basis) and therefore "
+            "cannot depend on snapshot ID, line number, provider/source order, "
+            "transport position, or provider display name"
+        )
+    return errors
+
+
+def _normalization_parity_errors(data: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    input_census = data.get("input_census")
+    output_events = data.get("output_events")
+    promotions = data.get("promotions")
+    readiness = data.get("readiness")
+    if (
+        not isinstance(input_census, dict)
+        or not isinstance(output_events, dict)
+        or not isinstance(readiness, dict)
+        or not isinstance(promotions, list)
+    ):
+        return errors
+
+    raw_unit_ids = input_census.get("raw_unit_ids")
+    output_event_ids = output_events.get("event_ids")
+    if not isinstance(raw_unit_ids, list) or not isinstance(output_event_ids, list):
+        return errors
+
+    promotion_ids = [
+        promotion.get("raw_unit_id")
+        for promotion in promotions
+        if isinstance(promotion, dict)
+    ]
+    duplicate_promotions = _duplicates(promotion_ids)
+    if duplicate_promotions:
+        errors.append(
+            "promotions contain duplicate raw_unit_id values: "
+            f"{duplicate_promotions}"
+        )
+
+    raw_unit_id_set = {
+        value for value in raw_unit_ids if isinstance(value, str)
+    }
+    promotion_id_set = {
+        value for value in promotion_ids if isinstance(value, str)
+    }
+    missing_promotions = sorted(raw_unit_id_set - promotion_id_set)
+    extra_promotions = sorted(promotion_id_set - raw_unit_id_set)
+    if missing_promotions:
+        errors.append(
+            f"promotions omit census raw_unit_id values: {missing_promotions}"
+        )
+    if extra_promotions:
+        errors.append(
+            f"promotions contain raw_unit_id values outside the census: {extra_promotions}"
+        )
+
+    promoted_event_ids: set[Any] = set()
+    disposition_types: dict[Any, Any] = {}
+    for promotion in promotions:
+        if not isinstance(promotion, dict):
+            continue
+        event_ids = promotion.get("event_ids")
+        if isinstance(event_ids, list):
+            promoted_event_ids.update(event_ids)
+        disposition = promotion.get("disposition")
+        if isinstance(disposition, dict):
+            disposition_types[promotion.get("raw_unit_id")] = disposition.get("type")
+
+    output_event_id_set = {
+        value for value in output_event_ids if isinstance(value, str)
+    }
+    promoted_event_id_set = {
+        value for value in promoted_event_ids if isinstance(value, str)
+    }
+    missing_output_events = sorted(output_event_id_set - promoted_event_id_set)
+    extra_output_events = sorted(promoted_event_id_set - output_event_id_set)
+    if missing_output_events:
+        errors.append(
+            "output_events contains normalized events absent from promotions: "
+            f"{missing_output_events}"
+        )
+    if extra_output_events:
+        errors.append(
+            "promotions reference normalized events absent from output_events: "
+            f"{extra_output_events}"
+        )
+
+    blocker_ids = {
+        raw_unit_id
+        for raw_unit_id, disposition_type in disposition_types.items()
+        if isinstance(raw_unit_id, str)
+        if disposition_type in {"blocked", "unsupported"}
+    }
+    quarantine_ids = {
+        raw_unit_id
+        for raw_unit_id, disposition_type in disposition_types.items()
+        if isinstance(raw_unit_id, str)
+        if disposition_type == "quarantined"
+    }
+    routed_blockers = set(readiness.get("unresolved_blockers", [])) | set(
+        readiness.get("missing_requirements", [])
+    )
+    if not blocker_ids.issubset(routed_blockers):
+        errors.append(
+            "blocked and unsupported dispositions must appear in unresolved_blockers "
+            "or missing_requirements"
+        )
+    if not quarantine_ids.issubset(set(readiness.get("quarantines", []))):
+        errors.append(
+            "quarantined dispositions must appear in readiness.quarantines"
+        )
+
+    exact_all = (
+        not duplicate_promotions
+        and not missing_promotions
+        and not extra_promotions
+        and not missing_output_events
+        and not extra_output_events
+    )
+    prerequisites_ready = not any(
+        disposition_type in {"blocked", "unsupported", "quarantined"}
+        for disposition_type in disposition_types.values()
+    )
+    errors.extend(
+        _readiness_errors(
+            data,
+            exact_all=exact_all,
+            prerequisites_ready=prerequisites_ready,
+        )
+    )
+    return errors
 
 
 def _coverage_errors(data: dict[str, Any]) -> list[str]:
@@ -127,6 +430,50 @@ def _coverage_errors(data: dict[str, Any]) -> list[str]:
             "exact_all must be true exactly when the unique denominator is classified once and every non-parsed source is owner-routed"
         )
 
+    expected_blockers = {
+        item.get("source_id")
+        for item in sources
+        if isinstance(item, dict)
+        and item.get("status") in {"inaccessible", "owner_blocked"}
+    }
+    expected_quarantines = {
+        item.get("source_id")
+        for item in sources
+        if isinstance(item, dict) and item.get("status") == "quarantined"
+    }
+    expected_missing_requirements = {
+        item.get("source_id")
+        for item in sources
+        if isinstance(item, dict) and item.get("status") == "missing_expected"
+    }
+    expected_incomplete_predicates = {
+        item.get("source_id")
+        for item in sources
+        if isinstance(item, dict) and item.get("status") == "acquired"
+    }
+    debt_expectations = {
+        "unresolved_blockers": expected_blockers,
+        "quarantines": expected_quarantines,
+        "missing_requirements": expected_missing_requirements,
+        "incomplete_predicates": expected_incomplete_predicates,
+    }
+    for field, expected in debt_expectations.items():
+        if set(data.get(field, [])) != expected:
+            errors.append(
+                f"{field} must exactly name the source records carrying that debt"
+            )
+
+    all_debt = [
+        item
+        for field in (
+            "unresolved_blockers",
+            "quarantines",
+            "missing_requirements",
+            "citation_debt",
+            "incomplete_predicates",
+        )
+        for item in data.get(field, [])
+    ]
     expected_ready = (
         expected_exact_all
         and all(
@@ -134,11 +481,26 @@ def _coverage_errors(data: dict[str, Any]) -> list[str]:
             for source in sources
         )
         and not actual_residuals
+        and not all_debt
     )
     if data.get("ready") is not expected_ready:
         errors.append(
             "ready must be true exactly when exact_all is true and every source is parsed"
         )
+    closure_status = data.get("closure_status")
+    if (closure_status == "ready") is not expected_ready:
+        errors.append(
+            "closure_status may be 'ready' exactly when the ready predicate passes"
+        )
+    if closure_status == "closed_with_owner_routed_debt":
+        if data.get("ready") is not False:
+            errors.append(
+                "closed_with_owner_routed_debt must never alias ready"
+            )
+        if not all_debt:
+            errors.append(
+                "closed_with_owner_routed_debt requires explicit debt"
+            )
 
     return errors
 
@@ -160,12 +522,24 @@ def _assertion_errors(data: dict[str, Any]) -> list[str]:
         item.get("evidence_type") for item in evidence if isinstance(item, dict)
     }
     assertion_class = data.get("assertion_class")
+    evidence_ids = [
+        item.get("evidence_id") for item in evidence if isinstance(item, dict)
+    ]
+    duplicate_evidence_ids = _duplicates(evidence_ids)
+    if duplicate_evidence_ids:
+        errors.append(
+            f"evidence_references contain duplicate evidence_id values: {duplicate_evidence_ids}"
+        )
 
     if assertion_class == "external_fact" and len(groups) < 2:
         errors.append(
             "a verified external_fact requires at least two independent evidence groups"
         )
     if assertion_class == "operator_directive":
+        if len(groups) < 2:
+            errors.append(
+                "a verified operator_directive requires at least two independent evidence groups"
+            )
         required = {"immutable_source_event", "ratified_constitutional_record"}
         missing = sorted(required - evidence_types)
         if missing:
@@ -185,6 +559,59 @@ def _assertion_errors(data: dict[str, Any]) -> list[str]:
         if not isinstance(freshness, dict) or freshness.get("status") != "fresh":
             errors.append("a verified current_state requires freshness.status 'fresh'")
 
+    return errors
+
+
+def _testament_errors(data: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    status = data.get("status")
+    ratification = data.get("ratification")
+
+    if status == "candidate" and ratification is not None:
+        errors.append("a candidate testament must not carry a ratification record")
+    if status != "ratified":
+        return errors
+    if not isinstance(ratification, dict):
+        return errors
+
+    authority_events = ratification.get("authority_events")
+    if not isinstance(authority_events, list) or not authority_events:
+        errors.append(
+            "a ratified testament requires at least one immutable operator authority event"
+        )
+    else:
+        event_ids = [
+            event.get("event_id") for event in authority_events if isinstance(event, dict)
+        ]
+        duplicate_event_ids = _duplicates(event_ids)
+        if duplicate_event_ids:
+            errors.append(
+                f"ratification authority_events contain duplicate event_id values: {duplicate_event_ids}"
+            )
+
+    assertion_reference = ratification.get("assertion_evidence_reference")
+    citations = data.get("citations")
+    if isinstance(citations, list) and assertion_reference not in citations:
+        errors.append(
+            "ratification assertion_evidence_reference must resolve through testament citations"
+        )
+
+    coverage = ratification.get("constitutional_coverage")
+    if isinstance(coverage, dict):
+        expected_coverage_ready = (
+            coverage.get("exact_all") is True
+            and not coverage.get("blocked_scopes")
+            and not coverage.get("missing_requirements")
+        )
+        if coverage.get("ready") is not expected_coverage_ready:
+            errors.append(
+                "constitutional_coverage.ready must be true exactly when coverage is exact "
+                "and no relevant scope is blocked or missing"
+            )
+        if not expected_coverage_ready:
+            errors.append(
+                "ratified status is impossible while relevant constitutional coverage is blocked"
+            )
     return errors
 
 
@@ -282,11 +709,648 @@ def _lineage_errors(data: dict[str, Any]) -> list[str]:
     return errors
 
 
+def _ideal_form_register_errors(data: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    ideal_forms = data.get("ideal_forms")
+    coverage = data.get("coverage")
+    readiness = data.get("readiness")
+    if (
+        not isinstance(ideal_forms, list)
+        or not isinstance(coverage, dict)
+        or not isinstance(readiness, dict)
+    ):
+        return errors
+
+    ideal_form_ids = [
+        ideal.get("ideal_form_id") for ideal in ideal_forms if isinstance(ideal, dict)
+    ]
+    duplicate_ideals = _duplicates(ideal_form_ids)
+    if duplicate_ideals:
+        errors.append(
+            f"ideal_forms contain duplicate ideal_form_id values: {duplicate_ideals}"
+        )
+
+    computed_states: list[str] = []
+    incomplete_predicate_ids: set[Any] = set()
+    derivations_complete = True
+    for ideal in ideal_forms:
+        if not isinstance(ideal, dict):
+            continue
+        ideal_form_id = ideal.get("ideal_form_id", "<unknown>")
+        predicates = ideal.get("predicates")
+        if not isinstance(predicates, list):
+            continue
+        predicate_ids = [
+            predicate.get("predicate_id")
+            for predicate in predicates
+            if isinstance(predicate, dict)
+        ]
+        duplicate_predicates = _duplicates(predicate_ids)
+        if duplicate_predicates:
+            errors.append(
+                f"ideal form {ideal_form_id!r} contains duplicate predicate_id values: "
+                f"{duplicate_predicates}"
+            )
+            derivations_complete = False
+
+        results = [
+            predicate.get("result")
+            for predicate in predicates
+            if isinstance(predicate, dict)
+        ]
+        if any(result == "blocked" for result in results):
+            expected_state = "blocked"
+        elif results and all(result == "pass" for result in results):
+            expected_state = "verified"
+        else:
+            expected_state = "partial"
+        computed_states.append(expected_state)
+
+        if ideal.get("implementation_state") != expected_state:
+            errors.append(
+                f"ideal form {ideal_form_id!r} implementation_state must be derived "
+                f"as {expected_state!r} from predicate receipts"
+            )
+
+        distance = ideal.get("distance_to_ideal")
+        verified_count = sum(result == "pass" for result in results)
+        if isinstance(distance, dict):
+            if distance.get("classification") != expected_state:
+                errors.append(
+                    f"ideal form {ideal_form_id!r} distance classification must be "
+                    "derived from predicate receipts"
+                )
+            if distance.get("verified_predicates") != verified_count:
+                errors.append(
+                    f"ideal form {ideal_form_id!r} verified_predicates must equal "
+                    "the number of pass results"
+                )
+            if distance.get("total_predicates") != len(predicates):
+                errors.append(
+                    f"ideal form {ideal_form_id!r} total_predicates must equal "
+                    "the predicate count"
+                )
+
+        receipt_references = {
+            predicate.get("receipt_reference")
+            for predicate in predicates
+            if isinstance(predicate, dict)
+        }
+        derivation = ideal.get("derivation")
+        derived_receipts = set(
+            derivation.get("receipt_references", [])
+            if isinstance(derivation, dict)
+            else []
+        )
+        if receipt_references != derived_receipts:
+            errors.append(
+                f"ideal form {ideal_form_id!r} derivation must name every predicate receipt exactly"
+            )
+            derivations_complete = False
+
+        residual_gaps = ideal.get("residual_gaps")
+        if expected_state == "verified" and residual_gaps:
+            errors.append(
+                f"verified ideal form {ideal_form_id!r} must not retain residual_gaps"
+            )
+        if expected_state != "verified" and not residual_gaps:
+            errors.append(
+                f"non-verified ideal form {ideal_form_id!r} must name residual_gaps"
+            )
+        incomplete_predicate_ids.update(
+            predicate.get("predicate_id")
+            for predicate in predicates
+            if isinstance(predicate, dict) and predicate.get("result") != "pass"
+        )
+
+    expected_coverage = {
+        "registered": len(ideal_forms),
+        "verified": sum(state == "verified" for state in computed_states),
+        "blocked": sum(state == "blocked" for state in computed_states),
+        "incomplete": sum(state == "partial" for state in computed_states),
+    }
+    for key, expected in expected_coverage.items():
+        if coverage.get(key) != expected:
+            errors.append(f"coverage.{key} must equal {expected}")
+
+    if set(readiness.get("incomplete_predicates", [])) != incomplete_predicate_ids:
+        errors.append(
+            "readiness.incomplete_predicates must exactly name every non-pass predicate"
+        )
+    blocked_predicate_ids = {
+        predicate.get("predicate_id")
+        for ideal in ideal_forms
+        if isinstance(ideal, dict)
+        for predicate in ideal.get("predicates", [])
+        if isinstance(predicate, dict) and predicate.get("result") == "blocked"
+    }
+    if not blocked_predicate_ids.issubset(
+        set(readiness.get("unresolved_blockers", []))
+    ):
+        errors.append(
+            "blocked ideal predicates must appear in readiness.unresolved_blockers"
+        )
+
+    exact_all = (
+        not duplicate_ideals
+        and derivations_complete
+        and all(coverage.get(key) == value for key, value in expected_coverage.items())
+    )
+    errors.extend(
+        _readiness_errors(
+            data,
+            exact_all=exact_all,
+            prerequisites_ready=all(
+                state == "verified" for state in computed_states
+            ),
+        )
+    )
+    return errors
+
+
+def _node_self_image_set_errors(data: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    registered_node_ids = data.get("registered_node_ids")
+    self_images = data.get("self_images")
+    counts = data.get("counts")
+    if (
+        not isinstance(registered_node_ids, list)
+        or not isinstance(self_images, list)
+        or not isinstance(counts, dict)
+    ):
+        return errors
+
+    image_node_ids = [
+        image.get("node_id") for image in self_images if isinstance(image, dict)
+    ]
+    duplicate_images = _duplicates(image_node_ids)
+    if duplicate_images:
+        errors.append(
+            f"self_images contain duplicate node_id values: {duplicate_images}"
+        )
+    registered_node_id_set = {
+        value for value in registered_node_ids if isinstance(value, str)
+    }
+    image_node_id_set = {
+        value for value in image_node_ids if isinstance(value, str)
+    }
+    missing_images = sorted(registered_node_id_set - image_node_id_set)
+    extra_images = sorted(image_node_id_set - registered_node_id_set)
+    if missing_images:
+        errors.append(
+            f"registered nodes missing self-images: {missing_images}"
+        )
+    if extra_images:
+        errors.append(
+            f"self-images exist for unregistered nodes: {extra_images}"
+        )
+    if counts.get("registered") != len(registered_node_ids):
+        errors.append("counts.registered must equal registered_node_ids length")
+    if counts.get("exported") != len(self_images):
+        errors.append("counts.exported must equal self_images length")
+
+    exact_all = (
+        not duplicate_images
+        and not missing_images
+        and not extra_images
+        and counts.get("registered") == len(registered_node_ids)
+        and counts.get("exported") == len(self_images)
+    )
+    errors.extend(_readiness_errors(data, exact_all=exact_all))
+    return errors
+
+
+def _governance_stage_receipt_errors(data: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    child_receipts = data.get("child_receipts")
+    cursor = data.get("cursor")
+    counts = data.get("counts")
+    limits = data.get("execution_limits")
+    inputs = data.get("inputs")
+    outputs = data.get("outputs")
+    if (
+        not isinstance(cursor, dict)
+        or not isinstance(counts, dict)
+        or not isinstance(limits, dict)
+        or not isinstance(child_receipts, list)
+        or not isinstance(inputs, list)
+        or not isinstance(outputs, list)
+    ):
+        return errors
+
+    child_ids = [
+        child.get("child_id") for child in child_receipts if isinstance(child, dict)
+    ]
+    duplicate_children = _duplicates(child_ids)
+    if duplicate_children:
+        errors.append(
+            f"child_receipts contain duplicate child_id values: {duplicate_children}"
+        )
+
+    completed_child_ids = set(cursor.get("completed_child_ids", []))
+    pending_child_ids = set(cursor.get("pending_child_ids", []))
+    if completed_child_ids.intersection(pending_child_ids):
+        errors.append(
+            "cursor completed_child_ids and pending_child_ids must be disjoint"
+        )
+    if completed_child_ids | pending_child_ids != set(child_ids):
+        errors.append(
+            "cursor child IDs must classify every child receipt exactly once"
+        )
+
+    statuses = [
+        child.get("status") for child in child_receipts if isinstance(child, dict)
+    ]
+    expected_completed_ids = {
+        child.get("child_id")
+        for child in child_receipts
+        if isinstance(child, dict)
+        and child.get("status") in {"completed", "skipped_completed"}
+    }
+    if completed_child_ids != expected_completed_ids:
+        errors.append(
+            "cursor.completed_child_ids must exactly match completed and skipped children"
+        )
+
+    expected_counts = Counter(statuses)
+    for field in ("completed", "skipped_completed", "failed", "blocked"):
+        if counts.get(field) != expected_counts.get(field, 0):
+            errors.append(
+                f"counts.{field} must equal the number of child receipts with that status"
+            )
+    expected_attempted = (
+        expected_counts.get("completed", 0)
+        + expected_counts.get("failed", 0)
+        + expected_counts.get("blocked", 0)
+    )
+    if counts.get("attempted") != expected_attempted:
+        errors.append(
+            "counts.attempted must count completed, failed, and blocked executions "
+            "but exclude skipped completed children"
+        )
+
+    if len(child_receipts) > limits.get("max_work_items", -1):
+        errors.append("child_receipts exceed execution_limits.max_work_items")
+    output_size = sum(
+        output.get("size_bytes", 0)
+        for output in outputs
+        if isinstance(output, dict)
+    )
+    if output_size > limits.get("max_output_bytes", -1):
+        errors.append("outputs exceed execution_limits.max_output_bytes")
+
+    if data.get("stage") == "discover":
+        if data.get("predecessor_receipt_digest") is not None:
+            errors.append("discover stage predecessor_receipt_digest must be null")
+    elif data.get("predecessor_receipt_digest") is None:
+        errors.append("every non-discover stage requires a predecessor receipt digest")
+
+    if data.get("status") == "completed":
+        if pending_child_ids:
+            errors.append("a completed stage must not retain pending children")
+        if any(status in {"failed", "blocked"} for status in statuses):
+            errors.append("a completed stage must not contain failed or blocked children")
+        if cursor.get("resume_token") is not None:
+            errors.append("a completed stage cursor must not retain a resume_token")
+    return errors
+
+
+def _governance_cadence_receipt_errors(data: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    stage_receipts = data.get("stage_receipts")
+    fixed_point = data.get("fixed_point")
+    if not isinstance(stage_receipts, list) or not isinstance(fixed_point, dict):
+        return errors
+
+    stages = [
+        receipt.get("stage") for receipt in stage_receipts if isinstance(receipt, dict)
+    ]
+    stage_receipt_ids = [
+        receipt.get("stage_receipt_id")
+        for receipt in stage_receipts
+        if isinstance(receipt, dict)
+    ]
+    duplicate_receipts = _duplicates(stage_receipt_ids)
+    if duplicate_receipts:
+        errors.append(
+            f"stage_receipts contain duplicate stage_receipt_id values: {duplicate_receipts}"
+        )
+    ordered = tuple(stages) == CADENCE_STAGES
+    if not ordered:
+        errors.append(
+            "stage_receipts must contain discover -> snapshot -> parse -> classify -> "
+            "reconcile -> distill -> validate -> render -> receipt exactly once"
+        )
+
+    chain_complete = True
+    for index, receipt in enumerate(stage_receipts):
+        if not isinstance(receipt, dict):
+            chain_complete = False
+            continue
+        expected_predecessor = (
+            None
+            if index == 0
+            else stage_receipts[index - 1].get("receipt_digest")
+            if isinstance(stage_receipts[index - 1], dict)
+            else None
+        )
+        if receipt.get("predecessor_receipt_digest") != expected_predecessor:
+            errors.append(
+                f"stage receipt at index {index} does not bind its predecessor digest"
+            )
+            chain_complete = False
+
+    run_number = data.get("run_number")
+    previous_digest = data.get("previous_cadence_receipt_digest")
+    if run_number == 1 and previous_digest is not None:
+        errors.append("cadence run 1 must not name a previous cadence receipt")
+    if isinstance(run_number, int) and run_number > 1 and previous_digest is None:
+        errors.append("cadence runs after run 1 must bind the previous cadence receipt")
+
+    fixed_status = fixed_point.get("status")
+    fixed_proven = (
+        fixed_status == "proven"
+        and fixed_point.get("new_event_count") == 0
+        and fixed_point.get("changed_byte_count") == 0
+        and fixed_point.get("replayed_completed_children") == 0
+        and fixed_point.get("output_digest_matches_previous") is True
+    )
+    if fixed_status == "proven" and not fixed_proven:
+        errors.append(
+            "fixed_point.status 'proven' requires zero events, bytes, and completed-child "
+            "replays plus an output digest match"
+        )
+    if previous_digest is None and fixed_status != "not_applicable":
+        errors.append("the first cadence run fixed point must be not_applicable")
+    if previous_digest is not None and not fixed_proven:
+        errors.append("a repeated cadence run must prove the fixed point")
+
+    all_completed = all(
+        isinstance(receipt, dict) and receipt.get("status") == "completed"
+        for receipt in stage_receipts
+    )
+    exact_all = (
+        ordered
+        and chain_complete
+        and not duplicate_receipts
+        and len(stage_receipts) == len(CADENCE_STAGES)
+    )
+    errors.extend(
+        _readiness_errors(
+            data,
+            exact_all=exact_all,
+            prerequisites_ready=all_completed
+            and (previous_digest is None or fixed_proven),
+        )
+    )
+    return errors
+
+
+def _governance_atlas_receipt_errors(data: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    snapshot_id = data.get("snapshot_id")
+    references = (
+        "source_envelope_set",
+        "assertion_evidence_set",
+        "ideal_form_register",
+        "node_self_image_set",
+        "iceberg_atlas",
+    )
+    snapshot_matches = True
+    for field in references:
+        reference = data.get(field)
+        if isinstance(reference, dict) and reference.get("snapshot_id") != snapshot_id:
+            errors.append(f"{field}.snapshot_id must match the receipt snapshot_id")
+            snapshot_matches = False
+
+    predicate_results = data.get("predicate_results")
+    all_predicates_pass = isinstance(predicate_results, dict) and all(
+        value is True for value in predicate_results.values()
+    )
+    exact_all = snapshot_matches
+    errors.extend(
+        _readiness_errors(
+            data,
+            exact_all=exact_all,
+            prerequisites_ready=all_predicates_pass,
+        )
+    )
+    return errors
+
+
+def _governance_snapshot_bundle_errors(data: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    snapshot_id = data.get("snapshot_id")
+    snapshot_digest = data.get("snapshot_digest")
+    embedded_documents_valid = True
+
+    embedded_contracts = (
+        ("normalized_events", "event_id"),
+        ("source_envelopes", "source_id"),
+        ("assertion_evidence", "assertion_id"),
+    )
+    for field, identity_field in embedded_contracts:
+        documents = data.get(field)
+        if not isinstance(documents, list):
+            continue
+        identities = [
+            document.get(identity_field)
+            for document in documents
+            if isinstance(document, dict)
+        ]
+        duplicates = _duplicates(identities)
+        if duplicates:
+            errors.append(f"{field} contains duplicate {identity_field} values: {duplicates}")
+            embedded_documents_valid = False
+        for index, document in enumerate(documents):
+            schema_errors, invariant_errors = validate_document(document)
+            if schema_errors or invariant_errors:
+                embedded_documents_valid = False
+                for error in schema_errors:
+                    errors.append(f"{field}[{index}] schema: {error}")
+                for error in invariant_errors:
+                    errors.append(f"{field}[{index}] semantic: {error}")
+
+    snapshot_matches = True
+    for index, event in enumerate(data.get("normalized_events", [])):
+        if not isinstance(event, dict):
+            continue
+        if event.get("snapshot_id") != snapshot_id:
+            errors.append(
+                f"normalized_events[{index}].snapshot_id must match bundle snapshot_id"
+            )
+            snapshot_matches = False
+        if event.get("snapshot_digest") != snapshot_digest:
+            errors.append(
+                f"normalized_events[{index}].snapshot_digest must match bundle snapshot_digest"
+            )
+            snapshot_matches = False
+    for index, envelope in enumerate(data.get("source_envelopes", [])):
+        if not isinstance(envelope, dict):
+            continue
+        custody_snapshot = envelope.get("custody_snapshot")
+        if not isinstance(custody_snapshot, dict):
+            continue
+        if custody_snapshot.get("snapshot_id") != snapshot_id:
+            errors.append(
+                f"source_envelopes[{index}] custody snapshot must match bundle snapshot_id"
+            )
+            snapshot_matches = False
+        if custody_snapshot.get("snapshot_hash") != snapshot_digest:
+            errors.append(
+                f"source_envelopes[{index}] custody hash must match bundle snapshot_digest"
+            )
+            snapshot_matches = False
+
+    reference_fields = (
+        "source_census",
+        "lineage_graph",
+        "governance_testament",
+        "coverage",
+        "ideal_form_register",
+        "node_self_image_set",
+        "iceberg_atlas",
+        "normalization_parity_receipt",
+        "governance_atlas_receipt",
+    )
+    for field in reference_fields:
+        reference = data.get(field)
+        if isinstance(reference, dict) and reference.get("snapshot_id") != snapshot_id:
+            errors.append(f"{field}.snapshot_id must match bundle snapshot_id")
+            snapshot_matches = False
+
+    stage_receipts = data.get("governance_stage_receipts")
+    stages: list[Any] = []
+    if isinstance(stage_receipts, list):
+        stages = [
+            receipt.get("stage")
+            for receipt in stage_receipts
+            if isinstance(receipt, dict)
+        ]
+        if tuple(stages) != CADENCE_STAGES:
+            errors.append(
+                "governance_stage_receipts must preserve the exact nine-stage order"
+            )
+        for index, receipt in enumerate(stage_receipts):
+            if isinstance(receipt, dict) and receipt.get("snapshot_id") != snapshot_id:
+                errors.append(
+                    f"governance_stage_receipts[{index}].snapshot_id must match bundle"
+                )
+                snapshot_matches = False
+
+    cadence_receipts = data.get("governance_cadence_receipts")
+    cadence_snapshot_matches = True
+    if isinstance(cadence_receipts, list):
+        for index, receipt in enumerate(cadence_receipts):
+            if isinstance(receipt, dict) and receipt.get("snapshot_id") != snapshot_id:
+                errors.append(
+                    f"governance_cadence_receipts[{index}].snapshot_id must match bundle"
+                )
+                cadence_snapshot_matches = False
+                snapshot_matches = False
+
+    final_fixed_point = False
+    if isinstance(cadence_receipts, list) and len(cadence_receipts) == 2:
+        first, second = cadence_receipts
+        if isinstance(first, dict) and isinstance(second, dict):
+            final_fixed_point = (
+                first.get("run_number") == 1
+                and first.get("previous_receipt_digest") is None
+                and second.get("run_number") == 2
+                and second.get("previous_receipt_digest") == first.get("digest")
+                and second.get("output_digest") == first.get("output_digest")
+                and second.get("fixed_point_status") == "proven"
+                and second.get("new_event_count") == 0
+                and second.get("changed_byte_count") == 0
+                and second.get("replayed_completed_children") == 0
+                and first.get("ready") is True
+                and second.get("ready") is True
+            )
+            probe = data.get("post_proof_idempotence")
+            final_fixed_point = final_fixed_point and isinstance(probe, dict) and (
+                probe.get("cadence_receipt_digest") == second.get("digest")
+                and probe.get("output_digest") == second.get("output_digest")
+                and probe.get("status") == "proven"
+                and probe.get("new_event_count") == 0
+                and probe.get("changed_byte_count") == 0
+                and probe.get("replayed_completed_children") == 0
+                and probe.get("emitted_receipt_count") == 0
+            )
+    if len(cadence_receipts or []) == 2 and not final_fixed_point:
+        errors.append(
+            "two cadence receipts must bind run 1 to byte-identical run 2, then a "
+            "post-proof invocation must emit zero events, bytes, receipts, or child replays"
+        )
+
+    assertions_verified = all(
+        isinstance(assertion, dict)
+        and assertion.get("verification_state") == "verified"
+        for assertion in data.get("assertion_evidence", [])
+    )
+    testament = data.get("governance_testament")
+    coverage = data.get("coverage")
+    ideal_register = data.get("ideal_form_register")
+    self_images = data.get("node_self_image_set")
+    parity = data.get("normalization_parity_receipt")
+    atlas_receipt = data.get("governance_atlas_receipt")
+    strict_prerequisites = (
+        assertions_verified
+        and isinstance(testament, dict)
+        and testament.get("status") == "ratified"
+        and testament.get("constitutional_coverage_ready") is True
+        and isinstance(coverage, dict)
+        and coverage.get("exact_all") is True
+        and coverage.get("ready") is True
+        and isinstance(ideal_register, dict)
+        and ideal_register.get("ready") is True
+        and isinstance(self_images, dict)
+        and self_images.get("ready") is True
+        and isinstance(parity, dict)
+        and parity.get("ready") is True
+        and isinstance(atlas_receipt, dict)
+        and atlas_receipt.get("ready") is True
+        and tuple(stages) == CADENCE_STAGES
+        and cadence_snapshot_matches
+        and final_fixed_point
+    )
+    exact_all = (
+        embedded_documents_valid
+        and snapshot_matches
+        and tuple(stages) == CADENCE_STAGES
+    )
+    errors.extend(
+        _readiness_errors(
+            data,
+            exact_all=exact_all,
+            prerequisites_ready=strict_prerequisites,
+        )
+    )
+    return errors
+
+
 def semantic_errors(data: Any) -> list[str]:
     """Return contract-specific semantic invariant failures."""
     if not isinstance(data, dict):
         return []
     contract_name = data.get("contract_name")
+    if contract_name == "source-census.v1":
+        return _source_census_errors(data)
+    if contract_name == "normalized-event.v1":
+        return _normalized_event_errors(data)
+    if contract_name == "normalization-parity-receipt.v1":
+        return _normalization_parity_errors(data)
+    if contract_name == "ideal-form-register.v1":
+        return _ideal_form_register_errors(data)
+    if contract_name == "node-self-image-set.v1":
+        return _node_self_image_set_errors(data)
+    if contract_name == "governance-stage-receipt.v1":
+        return _governance_stage_receipt_errors(data)
+    if contract_name == "governance-cadence-receipt.v1":
+        return _governance_cadence_receipt_errors(data)
+    if contract_name == "governance-atlas-receipt.v1":
+        return _governance_atlas_receipt_errors(data)
+    if contract_name == "governance-snapshot-bundle.v1":
+        return _governance_snapshot_bundle_errors(data)
     if contract_name == "coverage-receipt.v1":
         return _coverage_errors(data)
     if contract_name == "assertion-evidence.v1":
@@ -295,6 +1359,8 @@ def semantic_errors(data: Any) -> list[str]:
         return _parameter_errors(data)
     if contract_name == "lineage-graph.v1":
         return _lineage_errors(data)
+    if contract_name == "governance-testament.v1":
+        return _testament_errors(data)
     return []
 
 

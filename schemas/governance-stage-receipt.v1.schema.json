@@ -1,0 +1,200 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://meta-organvm.github.io/schema-definitions/governance-stage-receipt.v1.schema.json",
+  "title": "Governance Stage Receipt v1",
+  "description": "One bounded, resumable owner receipt for a single governance cadence stage.",
+  "type": "object",
+  "required": [
+    "contract_name",
+    "contract_version",
+    "stage_receipt_id",
+    "run_id",
+    "snapshot_id",
+    "snapshot_digest",
+    "stage",
+    "owner_reference",
+    "predicate",
+    "receipt_target",
+    "status",
+    "started_at",
+    "completed_at",
+    "predecessor_receipt_digest",
+    "inputs",
+    "outputs",
+    "input_digest",
+    "output_digest",
+    "execution_limits",
+    "cursor",
+    "child_receipts",
+    "counts",
+    "digest_algorithm",
+    "receipt_digest"
+  ],
+  "properties": {
+    "contract_name": {"const": "governance-stage-receipt.v1"},
+    "contract_version": {"const": 1},
+    "stage_receipt_id": {"type": "string", "minLength": 1},
+    "run_id": {"type": "string", "minLength": 1},
+    "snapshot_id": {"type": "string", "minLength": 1},
+    "snapshot_digest": {"$ref": "#/$defs/digest"},
+    "stage": {"$ref": "#/$defs/stage"},
+    "owner_reference": {"type": "string", "minLength": 1},
+    "predicate": {
+      "type": "object",
+      "required": ["predicate_id", "command", "expected_result"],
+      "properties": {
+        "predicate_id": {"type": "string", "minLength": 1},
+        "command": {"type": "string", "minLength": 1},
+        "expected_result": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "receipt_target": {"type": "string", "minLength": 1},
+    "status": {
+      "type": "string",
+      "enum": ["completed", "blocked", "failed"]
+    },
+    "started_at": {"type": "string", "format": "date-time"},
+    "completed_at": {"type": "string", "format": "date-time"},
+    "predecessor_receipt_digest": {
+      "oneOf": [
+        {"$ref": "#/$defs/digest"},
+        {"type": "null"}
+      ]
+    },
+    "inputs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/artifact_observation"}
+    },
+    "outputs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/artifact_observation"}
+    },
+    "input_digest": {"$ref": "#/$defs/digest"},
+    "output_digest": {"$ref": "#/$defs/digest"},
+    "execution_limits": {
+      "type": "object",
+      "required": [
+        "max_work_items",
+        "timeout_seconds",
+        "max_retries",
+        "max_output_bytes"
+      ],
+      "properties": {
+        "max_work_items": {"type": "integer", "minimum": 1},
+        "timeout_seconds": {"type": "integer", "minimum": 1},
+        "max_retries": {"type": "integer", "minimum": 0},
+        "max_output_bytes": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": false
+    },
+    "cursor": {
+      "type": "object",
+      "required": [
+        "resume_token",
+        "completed_child_ids",
+        "pending_child_ids"
+      ],
+      "properties": {
+        "resume_token": {"type": ["string", "null"]},
+        "completed_child_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "pending_child_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      },
+      "additionalProperties": false
+    },
+    "child_receipts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["child_id", "status", "input_digest", "output_digest"],
+        "properties": {
+          "child_id": {"type": "string", "minLength": 1},
+          "status": {
+            "type": "string",
+            "enum": ["completed", "skipped_completed", "blocked", "failed"]
+          },
+          "input_digest": {"$ref": "#/$defs/digest"},
+          "output_digest": {"$ref": "#/$defs/digest"},
+          "prior_receipt_digest": {"$ref": "#/$defs/digest"}
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {"status": {"const": "skipped_completed"}},
+              "required": ["status"]
+            },
+            "then": {"required": ["prior_receipt_digest"]}
+          }
+        ],
+        "additionalProperties": false
+      }
+    },
+    "counts": {
+      "type": "object",
+      "required": [
+        "attempted",
+        "completed",
+        "skipped_completed",
+        "failed",
+        "blocked"
+      ],
+      "properties": {
+        "attempted": {"type": "integer", "minimum": 0},
+        "completed": {"type": "integer", "minimum": 0},
+        "skipped_completed": {"type": "integer", "minimum": 0},
+        "failed": {"type": "integer", "minimum": 0},
+        "blocked": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "digest_algorithm": {
+      "const": "sha256-rfc8785-excluding-self-digest-v1",
+      "description": "RFC 8785 canonical JSON, excluding receipt_digest itself."
+    },
+    "receipt_digest": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "stage": {
+      "type": "string",
+      "enum": [
+        "discover",
+        "snapshot",
+        "parse",
+        "classify",
+        "reconcile",
+        "distill",
+        "validate",
+        "render",
+        "receipt"
+      ]
+    },
+    "artifact_observation": {
+      "type": "object",
+      "required": ["artifact_id", "reference", "digest", "size_bytes"],
+      "properties": {
+        "artifact_id": {"type": "string", "minLength": 1},
+        "reference": {"type": "string", "minLength": 1},
+        "digest": {"$ref": "#/$defs/digest"},
+        "size_bytes": {"type": "integer", "minimum": 0},
+        "contract": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

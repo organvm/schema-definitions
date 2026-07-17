@@ -1,0 +1,318 @@
+{
+  "contract_name": "governance-snapshot-bundle.v1",
+  "contract_version": 1,
+  "bundle_id": "governance-bundle-fixture-20260716",
+  "snapshot_id": "snapshot-fixture-20260716",
+  "snapshot_at": "2026-07-16T18:00:00Z",
+  "snapshot_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "generated_at": "2026-07-16T18:31:00Z",
+  "source_census": {
+    "contract_name": "source-census.v1",
+    "census_id": "census-final-fixture-20260716",
+    "reference": "bundle://snapshot-fixture-20260716/source-census",
+    "snapshot_id": "snapshot-fixture-20260716",
+    "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "raw_unit_count": 1
+  },
+  "normalized_events": [
+    {
+      "contract_name": "normalized-event.v1",
+      "contract_version": 1,
+      "event_id": "evt_c4dd29c0ba4b171d9a7bf4278d2a3742a82a4b1b6b5b1664697d50adc04a992f",
+      "identity_algorithm": "sha256-canonical-json-native-identity-role-content-v1",
+      "identity_basis": {
+        "native_identity_namespace": "fixture-native-v1",
+        "native_identifiers": {
+          "conversation_id": "native-conversation-17",
+          "event_id": "native-event-42"
+        },
+        "native_role": "user",
+        "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "snapshot_id": "snapshot-fixture-20260716",
+      "snapshot_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "raw_unit_id": "raw_fixture_event_001",
+      "source_family": "runtime-provider-alpha",
+      "source_instance": "workspace-fixture-01",
+      "format_adapter": "jsonl-role-events-v3",
+      "normalized_role": "operator",
+      "occurred_at": "2026-07-16T17:59:00Z",
+      "authority_class": "operator_intent",
+      "source_envelope_reference": "source:src_provider_renamed_alpha_event_001",
+      "redacted_content_pointer": "reports://source-events/native-event-42",
+      "transport_metadata": {
+        "line_number": 17,
+        "source_order": 3,
+        "provider_order": 8,
+        "transport_position": "root"
+      },
+      "evidence_references": ["receipt:adapter-fixture-alpha"]
+    }
+  ],
+  "source_envelopes": [
+    {
+      "contract_name": "source-envelope.v1",
+      "contract_version": 1,
+      "source_id": "src_provider_renamed_alpha_event_001",
+      "source_family": "runtime-provider-alpha",
+      "source_instance": "workspace-fixture-01",
+      "format_adapter": "jsonl-role-events-v3",
+      "custody_snapshot": {
+        "snapshot_id": "snapshot-fixture-20260716",
+        "captured_at": "2026-07-16T18:00:00Z",
+        "snapshot_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "custody_pointer": "private-cas://snapshot-fixture-20260716",
+        "immutable": true
+      },
+      "native_identifiers": {
+        "conversation_id": "native-conversation-17",
+        "event_id": "native-event-42"
+      },
+      "role": "operator",
+      "event_timestamp": "2026-07-16T17:59:00Z",
+      "ingestion_timestamp": "2026-07-16T18:00:01Z",
+      "authority_class": "operator_intent",
+      "body_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "private_custody_pointer": "private-cas://body/runtime-provider-alpha/native-event-42",
+      "historical_branding": "runtime-provider-alpha",
+      "redacted_projection_pointer": "reports://source-events/native-event-42",
+      "provider_metadata": {"export_format": "fixture-v3"},
+      "attachments": []
+    }
+  ],
+  "assertion_evidence": [
+    {
+      "contract_name": "assertion-evidence.v1",
+      "contract_version": 1,
+      "assertion_id": "assertion_external_fixture_001",
+      "assertion_class": "external_fact",
+      "statement": "The fixture capability is reported by two independent primary records.",
+      "verification_state": "verified",
+      "evidence_references": [
+        {
+          "evidence_id": "evidence_fixture_owner",
+          "independence_group": "fixture-owner-record",
+          "evidence_type": "primary_source",
+          "reference": "https://example.invalid/evidence/owner-record",
+          "body_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "observed_at": "2026-07-16T18:00:00Z"
+        },
+        {
+          "evidence_id": "evidence_fixture_verifier",
+          "independence_group": "independent-verifier-record",
+          "evidence_type": "secondary_source",
+          "reference": "https://example.invalid/evidence/verifier-record",
+          "body_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "observed_at": "2026-07-16T18:01:00Z"
+        }
+      ]
+    }
+  ],
+  "lineage_graph": {
+    "contract_name": "lineage-graph.v1",
+    "artifact_id": "lineage-fixture-20260716",
+    "reference": "examples/lineage-graph-v1-example.json",
+    "snapshot_id": "snapshot-fixture-20260716",
+    "digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+    "node_count": 2
+  },
+  "governance_testament": {
+    "contract_name": "governance-testament.v1",
+    "artifact_id": "governance-testament-fixture",
+    "reference": "examples/governance-testament-v1-example.json",
+    "snapshot_id": "snapshot-fixture-20260716",
+    "digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+    "status": "ratified",
+    "constitutional_coverage_ready": true
+  },
+  "coverage": {
+    "contract_name": "coverage-receipt.v1",
+    "receipt_id": "coverage-final-fixture",
+    "reference": "bundle://snapshot-fixture-20260716/coverage",
+    "snapshot_id": "snapshot-fixture-20260716",
+    "digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+    "exact_all": true,
+    "ready": true
+  },
+  "ideal_form_register": {
+    "contract_name": "ideal-form-register.v1",
+    "artifact_id": "ideal-register-fixture-20260716",
+    "reference": "examples/ideal-form-register-v1-example.json",
+    "snapshot_id": "snapshot-fixture-20260716",
+    "digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+    "count": 1,
+    "ready": true
+  },
+  "node_self_image_set": {
+    "contract_name": "node-self-image-set.v1",
+    "artifact_id": "self-image-set-fixture-20260716",
+    "reference": "examples/node-self-image-set-v1-example.json",
+    "snapshot_id": "snapshot-fixture-20260716",
+    "digest": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+    "count": 1,
+    "ready": true
+  },
+  "iceberg_atlas": {
+    "contract_name": "iceberg-atlas.v1",
+    "artifact_id": "iceberg-atlas-fixture-20260716",
+    "reference": "examples/iceberg-atlas-v1-example.json",
+    "snapshot_id": "snapshot-fixture-20260716",
+    "digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+    "timeline_count": 2,
+    "zoom_count": 6
+  },
+  "normalization_parity_receipt": {
+    "contract_name": "normalization-parity-receipt.v1",
+    "receipt_id": "parity-final-fixture",
+    "reference": "bundle://snapshot-fixture-20260716/normalization-parity",
+    "snapshot_id": "snapshot-fixture-20260716",
+    "digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+    "ready": true
+  },
+  "governance_stage_receipts": [
+    {
+      "contract_name": "governance-stage-receipt.v1",
+      "stage": "discover",
+      "receipt_id": "stage-discover-fixture-run-2",
+      "reference": "receipts://cadence-fixture-run-2/discover",
+      "snapshot_id": "snapshot-fixture-20260716",
+      "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "status": "completed"
+    },
+    {
+      "contract_name": "governance-stage-receipt.v1",
+      "stage": "snapshot",
+      "receipt_id": "stage-snapshot-fixture-run-2",
+      "reference": "receipts://cadence-fixture-run-2/snapshot",
+      "snapshot_id": "snapshot-fixture-20260716",
+      "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "status": "completed"
+    },
+    {
+      "contract_name": "governance-stage-receipt.v1",
+      "stage": "parse",
+      "receipt_id": "stage-parse-fixture-run-2",
+      "reference": "receipts://cadence-fixture-run-2/parse",
+      "snapshot_id": "snapshot-fixture-20260716",
+      "digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "status": "completed"
+    },
+    {
+      "contract_name": "governance-stage-receipt.v1",
+      "stage": "classify",
+      "receipt_id": "stage-classify-fixture-run-2",
+      "reference": "receipts://cadence-fixture-run-2/classify",
+      "snapshot_id": "snapshot-fixture-20260716",
+      "digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+      "status": "completed"
+    },
+    {
+      "contract_name": "governance-stage-receipt.v1",
+      "stage": "reconcile",
+      "receipt_id": "stage-reconcile-fixture-run-2",
+      "reference": "receipts://cadence-fixture-run-2/reconcile",
+      "snapshot_id": "snapshot-fixture-20260716",
+      "digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+      "status": "completed"
+    },
+    {
+      "contract_name": "governance-stage-receipt.v1",
+      "stage": "distill",
+      "receipt_id": "stage-distill-fixture-run-2",
+      "reference": "receipts://cadence-fixture-run-2/distill",
+      "snapshot_id": "snapshot-fixture-20260716",
+      "digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "status": "completed"
+    },
+    {
+      "contract_name": "governance-stage-receipt.v1",
+      "stage": "validate",
+      "receipt_id": "stage-validate-fixture-run-2",
+      "reference": "receipts://cadence-fixture-run-2/validate",
+      "snapshot_id": "snapshot-fixture-20260716",
+      "digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+      "status": "completed"
+    },
+    {
+      "contract_name": "governance-stage-receipt.v1",
+      "stage": "render",
+      "receipt_id": "stage-render-fixture-run-2",
+      "reference": "receipts://cadence-fixture-run-2/render",
+      "snapshot_id": "snapshot-fixture-20260716",
+      "digest": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+      "status": "completed"
+    },
+    {
+      "contract_name": "governance-stage-receipt.v1",
+      "stage": "receipt",
+      "receipt_id": "stage-receipt-fixture-run-2",
+      "reference": "receipts://cadence-fixture-run-2/receipt",
+      "snapshot_id": "snapshot-fixture-20260716",
+      "digest": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+      "status": "completed"
+    }
+  ],
+  "governance_cadence_receipts": [
+    {
+      "contract_name": "governance-cadence-receipt.v1",
+      "receipt_id": "cadence-fixture-run-1",
+      "reference": "receipts://cadence-fixture-run-1",
+      "run_number": 1,
+      "snapshot_id": "snapshot-fixture-20260716",
+      "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "previous_receipt_digest": null,
+      "output_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "fixed_point_status": "not_applicable",
+      "new_event_count": 1,
+      "changed_byte_count": 4096,
+      "replayed_completed_children": 0,
+      "ready": true
+    },
+    {
+      "contract_name": "governance-cadence-receipt.v1",
+      "receipt_id": "cadence-fixture-run-2",
+      "reference": "examples/governance-cadence-receipt-v1-example.json",
+      "run_number": 2,
+      "snapshot_id": "snapshot-fixture-20260716",
+      "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "previous_receipt_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "output_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "fixed_point_status": "proven",
+      "new_event_count": 0,
+      "changed_byte_count": 0,
+      "replayed_completed_children": 0,
+      "ready": true
+    }
+  ],
+  "post_proof_idempotence": {
+    "probe_id": "idempotence-probe-fixture-after-run-2",
+    "invoked_at": "2026-07-16T18:30:10Z",
+    "cadence_receipt_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "output_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "status": "proven",
+    "new_event_count": 0,
+    "changed_byte_count": 0,
+    "replayed_completed_children": 0,
+    "emitted_receipt_count": 0
+  },
+  "governance_atlas_receipt": {
+    "contract_name": "governance-atlas-receipt.v1",
+    "receipt_id": "atlas-receipt-fixture-20260716",
+    "reference": "examples/governance-atlas-receipt-v1-example.json",
+    "snapshot_id": "snapshot-fixture-20260716",
+    "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "ready": true
+  },
+  "readiness": {
+    "exact_all": true,
+    "unresolved_blockers": [],
+    "quarantines": [],
+    "missing_requirements": [],
+    "citation_debt": [],
+    "incomplete_predicates": [],
+    "ready": true,
+    "status": "ready"
+  },
+  "digest_algorithm": "sha256-rfc8785-excluding-self-digest-v1",
+  "bundle_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+}

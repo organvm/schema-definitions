@@ -30,6 +30,12 @@
   },
   "exact_all": false,
   "ready": false,
+  "unresolved_blockers": ["src_blocked_fixture"],
+  "quarantines": [],
+  "missing_requirements": [],
+  "citation_debt": [],
+  "incomplete_predicates": [],
+  "closure_status": "closed_with_owner_routed_debt",
   "residual_owners": [
     {
       "source_id": "src_blocked_fixture",

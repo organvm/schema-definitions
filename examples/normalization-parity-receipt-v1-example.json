@@ -1,0 +1,54 @@
+{
+  "contract_name": "normalization-parity-receipt.v1",
+  "contract_version": 1,
+  "receipt_id": "parity-fixture-20260716",
+  "snapshot_id": "snapshot-fixture-20260716",
+  "snapshot_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "generated_at": "2026-07-16T18:15:00Z",
+  "input_census": {
+    "census_id": "census-fixture-20260716",
+    "census_reference": "examples/source-census-v1-example.json",
+    "census_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "raw_unit_ids": [
+      "raw_fixture_event_001",
+      "raw_fixture_expected_002"
+    ]
+  },
+  "output_events": {
+    "event_set_reference": "examples/normalized-event-v1-example.json",
+    "event_set_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+    "event_ids": [
+      "evt_c4dd29c0ba4b171d9a7bf4278d2a3742a82a4b1b6b5b1664697d50adc04a992f"
+    ]
+  },
+  "promotions": [
+    {
+      "raw_unit_id": "raw_fixture_event_001",
+      "event_ids": [
+        "evt_c4dd29c0ba4b171d9a7bf4278d2a3742a82a4b1b6b5b1664697d50adc04a992f"
+      ]
+    },
+    {
+      "raw_unit_id": "raw_fixture_expected_002",
+      "disposition": {
+        "type": "blocked",
+        "owner_reference": "owner_source_export_fixture",
+        "failed_predicate": "official read-only export is present in the frozen snapshot",
+        "next_action": "Acquire the official owner-authorized export.",
+        "evidence_references": ["receipt:blocker-fixture-beta"]
+      }
+    }
+  ],
+  "readiness": {
+    "exact_all": true,
+    "unresolved_blockers": ["raw_fixture_expected_002"],
+    "quarantines": [],
+    "missing_requirements": [],
+    "citation_debt": [],
+    "incomplete_predicates": [],
+    "ready": false,
+    "status": "closed_with_owner_routed_debt"
+  },
+  "digest_algorithm": "sha256-rfc8785-excluding-self-digest-v1",
+  "receipt_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+}

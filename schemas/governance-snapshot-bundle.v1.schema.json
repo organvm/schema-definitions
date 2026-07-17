@@ -1,0 +1,464 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://meta-organvm.github.io/schema-definitions/governance-snapshot-bundle.v1.schema.json",
+  "title": "Governance Snapshot Bundle v1",
+  "description": "Final frozen-snapshot handoff binding nonempty source, event, assertion, lineage, testament, ideal, self-image, Atlas, parity, stage, cadence, and Atlas-ready contracts by exact digest.",
+  "type": "object",
+  "required": [
+    "contract_name",
+    "contract_version",
+    "bundle_id",
+    "snapshot_id",
+    "snapshot_at",
+    "snapshot_digest",
+    "generated_at",
+    "source_census",
+    "normalized_events",
+    "source_envelopes",
+    "assertion_evidence",
+    "lineage_graph",
+    "governance_testament",
+    "coverage",
+    "ideal_form_register",
+    "node_self_image_set",
+    "iceberg_atlas",
+    "normalization_parity_receipt",
+    "governance_stage_receipts",
+    "governance_cadence_receipts",
+    "post_proof_idempotence",
+    "governance_atlas_receipt",
+    "readiness",
+    "digest_algorithm",
+    "bundle_digest"
+  ],
+  "properties": {
+    "contract_name": {"const": "governance-snapshot-bundle.v1"},
+    "contract_version": {"const": 1},
+    "bundle_id": {"type": "string", "minLength": 1},
+    "snapshot_id": {"type": "string", "minLength": 1},
+    "snapshot_at": {"type": "string", "format": "date-time"},
+    "snapshot_digest": {"$ref": "#/$defs/digest"},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "source_census": {
+      "type": "object",
+      "required": [
+        "contract_name",
+        "census_id",
+        "reference",
+        "snapshot_id",
+        "digest",
+        "raw_unit_count"
+      ],
+      "properties": {
+        "contract_name": {"const": "source-census.v1"},
+        "census_id": {"type": "string", "minLength": 1},
+        "reference": {"type": "string", "minLength": 1},
+        "snapshot_id": {"type": "string", "minLength": 1},
+        "digest": {"$ref": "#/$defs/digest"},
+        "raw_unit_count": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": false
+    },
+    "normalized_events": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "contract_name",
+          "contract_version",
+          "event_id",
+          "snapshot_id",
+          "snapshot_digest"
+        ],
+        "properties": {
+          "contract_name": {"const": "normalized-event.v1"},
+          "contract_version": {"const": 1},
+          "event_id": {"type": "string", "pattern": "^evt_[a-f0-9]{64}$"},
+          "snapshot_id": {"type": "string", "minLength": 1},
+          "snapshot_digest": {"$ref": "#/$defs/digest"}
+        },
+        "additionalProperties": true
+      }
+    },
+    "source_envelopes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "contract_name",
+          "contract_version",
+          "source_id",
+          "custody_snapshot",
+          "native_identifiers",
+          "role",
+          "authority_class",
+          "body_hash"
+        ],
+        "properties": {
+          "contract_name": {"const": "source-envelope.v1"},
+          "contract_version": {"const": 1},
+          "source_id": {"type": "string", "minLength": 1},
+          "custody_snapshot": {
+            "type": "object",
+            "required": ["snapshot_id", "snapshot_hash"],
+            "properties": {
+              "snapshot_id": {"type": "string", "minLength": 1},
+              "snapshot_hash": {"$ref": "#/$defs/digest"}
+            },
+            "additionalProperties": true
+          },
+          "native_identifiers": {"type": "object", "minProperties": 1},
+          "role": {"type": "string", "minLength": 1},
+          "authority_class": {"type": "string", "minLength": 1},
+          "body_hash": {"$ref": "#/$defs/digest"}
+        },
+        "additionalProperties": true
+      }
+    },
+    "assertion_evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "contract_name",
+          "contract_version",
+          "assertion_id",
+          "verification_state",
+          "evidence_references"
+        ],
+        "properties": {
+          "contract_name": {"const": "assertion-evidence.v1"},
+          "contract_version": {"const": 1},
+          "assertion_id": {"type": "string", "minLength": 1},
+          "verification_state": {"type": "string", "minLength": 1},
+          "evidence_references": {"type": "array", "minItems": 1}
+        },
+        "additionalProperties": true
+      }
+    },
+    "lineage_graph": {
+      "type": "object",
+      "required": [
+        "contract_name",
+        "artifact_id",
+        "reference",
+        "snapshot_id",
+        "digest",
+        "node_count"
+      ],
+      "properties": {
+        "contract_name": {"const": "lineage-graph.v1"},
+        "artifact_id": {"type": "string", "minLength": 1},
+        "reference": {"type": "string", "minLength": 1},
+        "snapshot_id": {"type": "string", "minLength": 1},
+        "digest": {"$ref": "#/$defs/digest"},
+        "node_count": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": false
+    },
+    "governance_testament": {
+      "type": "object",
+      "required": [
+        "contract_name",
+        "artifact_id",
+        "reference",
+        "snapshot_id",
+        "digest",
+        "status",
+        "constitutional_coverage_ready"
+      ],
+      "properties": {
+        "contract_name": {"const": "governance-testament.v1"},
+        "artifact_id": {"type": "string", "minLength": 1},
+        "reference": {"type": "string", "minLength": 1},
+        "snapshot_id": {"type": "string", "minLength": 1},
+        "digest": {"$ref": "#/$defs/digest"},
+        "status": {
+          "type": "string",
+          "enum": ["draft", "candidate", "ratified", "superseded"]
+        },
+        "constitutional_coverage_ready": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "coverage": {
+      "type": "object",
+      "required": [
+        "contract_name",
+        "receipt_id",
+        "reference",
+        "snapshot_id",
+        "digest",
+        "exact_all",
+        "ready"
+      ],
+      "properties": {
+        "contract_name": {"const": "coverage-receipt.v1"},
+        "receipt_id": {"type": "string", "minLength": 1},
+        "reference": {"type": "string", "minLength": 1},
+        "snapshot_id": {"type": "string", "minLength": 1},
+        "digest": {"$ref": "#/$defs/digest"},
+        "exact_all": {"type": "boolean"},
+        "ready": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "ideal_form_register": {
+      "$ref": "#/$defs/ready_artifact_reference",
+      "properties": {"contract_name": {"const": "ideal-form-register.v1"}}
+    },
+    "node_self_image_set": {
+      "$ref": "#/$defs/ready_artifact_reference",
+      "properties": {"contract_name": {"const": "node-self-image-set.v1"}}
+    },
+    "iceberg_atlas": {
+      "type": "object",
+      "required": [
+        "contract_name",
+        "artifact_id",
+        "reference",
+        "snapshot_id",
+        "digest",
+        "timeline_count",
+        "zoom_count"
+      ],
+      "properties": {
+        "contract_name": {"const": "iceberg-atlas.v1"},
+        "artifact_id": {"type": "string", "minLength": 1},
+        "reference": {"type": "string", "minLength": 1},
+        "snapshot_id": {"type": "string", "minLength": 1},
+        "digest": {"$ref": "#/$defs/digest"},
+        "timeline_count": {"const": 2},
+        "zoom_count": {"const": 6}
+      },
+      "additionalProperties": false
+    },
+    "normalization_parity_receipt": {
+      "$ref": "#/$defs/ready_receipt_reference",
+      "properties": {
+        "contract_name": {"const": "normalization-parity-receipt.v1"}
+      }
+    },
+    "governance_stage_receipts": {
+      "type": "array",
+      "minItems": 9,
+      "maxItems": 9,
+      "items": {"$ref": "#/$defs/stage_receipt_reference"}
+    },
+    "governance_cadence_receipts": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 2,
+      "items": {"$ref": "#/$defs/cadence_receipt_reference"}
+    },
+    "post_proof_idempotence": {
+      "type": "object",
+      "description": "A third invocation after the two receipt-producing cadence runs. It must emit no receipt and change no governed byte, event, or completed child.",
+      "required": [
+        "probe_id",
+        "invoked_at",
+        "cadence_receipt_digest",
+        "output_digest",
+        "status",
+        "new_event_count",
+        "changed_byte_count",
+        "replayed_completed_children",
+        "emitted_receipt_count"
+      ],
+      "properties": {
+        "probe_id": {"type": "string", "minLength": 1},
+        "invoked_at": {"type": "string", "format": "date-time"},
+        "cadence_receipt_digest": {"$ref": "#/$defs/digest"},
+        "output_digest": {"$ref": "#/$defs/digest"},
+        "status": {"const": "proven"},
+        "new_event_count": {"const": 0},
+        "changed_byte_count": {"const": 0},
+        "replayed_completed_children": {"const": 0},
+        "emitted_receipt_count": {"const": 0}
+      },
+      "additionalProperties": false
+    },
+    "governance_atlas_receipt": {
+      "$ref": "#/$defs/ready_receipt_reference",
+      "properties": {
+        "contract_name": {"const": "governance-atlas-receipt.v1"}
+      }
+    },
+    "readiness": {"$ref": "#/$defs/readiness"},
+    "digest_algorithm": {
+      "const": "sha256-rfc8785-excluding-self-digest-v1",
+      "description": "RFC 8785 canonical JSON, excluding bundle_digest itself."
+    },
+    "bundle_digest": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "ready_artifact_reference": {
+      "type": "object",
+      "required": [
+        "contract_name",
+        "artifact_id",
+        "reference",
+        "snapshot_id",
+        "digest",
+        "count",
+        "ready"
+      ],
+      "properties": {
+        "contract_name": {"type": "string", "minLength": 1},
+        "artifact_id": {"type": "string", "minLength": 1},
+        "reference": {"type": "string", "minLength": 1},
+        "snapshot_id": {"type": "string", "minLength": 1},
+        "digest": {"$ref": "#/$defs/digest"},
+        "count": {"type": "integer", "minimum": 1},
+        "ready": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "ready_receipt_reference": {
+      "type": "object",
+      "required": [
+        "contract_name",
+        "receipt_id",
+        "reference",
+        "snapshot_id",
+        "digest",
+        "ready"
+      ],
+      "properties": {
+        "contract_name": {"type": "string", "minLength": 1},
+        "receipt_id": {"type": "string", "minLength": 1},
+        "reference": {"type": "string", "minLength": 1},
+        "snapshot_id": {"type": "string", "minLength": 1},
+        "digest": {"$ref": "#/$defs/digest"},
+        "ready": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "stage_receipt_reference": {
+      "type": "object",
+      "required": [
+        "contract_name",
+        "stage",
+        "receipt_id",
+        "reference",
+        "snapshot_id",
+        "digest",
+        "status"
+      ],
+      "properties": {
+        "contract_name": {"const": "governance-stage-receipt.v1"},
+        "stage": {
+          "type": "string",
+          "enum": [
+            "discover",
+            "snapshot",
+            "parse",
+            "classify",
+            "reconcile",
+            "distill",
+            "validate",
+            "render",
+            "receipt"
+          ]
+        },
+        "receipt_id": {"type": "string", "minLength": 1},
+        "reference": {"type": "string", "minLength": 1},
+        "snapshot_id": {"type": "string", "minLength": 1},
+        "digest": {"$ref": "#/$defs/digest"},
+        "status": {"const": "completed"}
+      },
+      "additionalProperties": false
+    },
+    "cadence_receipt_reference": {
+      "type": "object",
+      "required": [
+        "contract_name",
+        "receipt_id",
+        "reference",
+        "run_number",
+        "snapshot_id",
+        "digest",
+        "previous_receipt_digest",
+        "output_digest",
+        "fixed_point_status",
+        "new_event_count",
+        "changed_byte_count",
+        "replayed_completed_children",
+        "ready"
+      ],
+      "properties": {
+        "contract_name": {"const": "governance-cadence-receipt.v1"},
+        "receipt_id": {"type": "string", "minLength": 1},
+        "reference": {"type": "string", "minLength": 1},
+        "run_number": {"type": "integer", "minimum": 1, "maximum": 2},
+        "snapshot_id": {"type": "string", "minLength": 1},
+        "digest": {"$ref": "#/$defs/digest"},
+        "previous_receipt_digest": {
+          "oneOf": [
+            {"$ref": "#/$defs/digest"},
+            {"type": "null"}
+          ]
+        },
+        "output_digest": {"$ref": "#/$defs/digest"},
+        "fixed_point_status": {
+          "type": "string",
+          "enum": ["not_applicable", "proven", "changed"]
+        },
+        "new_event_count": {"type": "integer", "minimum": 0},
+        "changed_byte_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Governed-output byte delta excluding the new run-2 proof receipt itself."
+        },
+        "replayed_completed_children": {"type": "integer", "minimum": 0},
+        "ready": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "readiness": {
+      "type": "object",
+      "required": [
+        "exact_all",
+        "unresolved_blockers",
+        "quarantines",
+        "missing_requirements",
+        "citation_debt",
+        "incomplete_predicates",
+        "ready",
+        "status"
+      ],
+      "properties": {
+        "exact_all": {"type": "boolean"},
+        "unresolved_blockers": {"$ref": "#/$defs/debt_list"},
+        "quarantines": {"$ref": "#/$defs/debt_list"},
+        "missing_requirements": {"$ref": "#/$defs/debt_list"},
+        "citation_debt": {"$ref": "#/$defs/debt_list"},
+        "incomplete_predicates": {"$ref": "#/$defs/debt_list"},
+        "ready": {"type": "boolean"},
+        "status": {
+          "type": "string",
+          "enum": [
+            "incomplete",
+            "blocked",
+            "ready",
+            "closed_with_owner_routed_debt"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "debt_list": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,68 @@
+{
+  "contract_name": "governance-stage-receipt.v1",
+  "contract_version": 1,
+  "stage_receipt_id": "stage-discover-fixture-run-2",
+  "run_id": "cadence-fixture-run-2",
+  "snapshot_id": "snapshot-fixture-20260716",
+  "snapshot_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "stage": "discover",
+  "owner_reference": "owner_source_census",
+  "predicate": {
+    "predicate_id": "predicate-discover-exact-census",
+    "command": "python scripts/verify-discovery.py --strict",
+    "expected_result": "every configured runtime root is enumerated and every raw unit is classified"
+  },
+  "receipt_target": "receipts://cadence-fixture-run-2/discover",
+  "status": "completed",
+  "started_at": "2026-07-16T18:30:00Z",
+  "completed_at": "2026-07-16T18:30:01Z",
+  "predecessor_receipt_digest": null,
+  "inputs": [
+    {
+      "artifact_id": "source-manifest-fixture",
+      "reference": "config://governance-memory/source-manifest",
+      "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "size_bytes": 512,
+      "contract": "source-manifest.v1"
+    }
+  ],
+  "outputs": [
+    {
+      "artifact_id": "census-fixture-20260716",
+      "reference": "examples/source-census-v1-example.json",
+      "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "size_bytes": 2048,
+      "contract": "source-census.v1"
+    }
+  ],
+  "input_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+  "output_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+  "execution_limits": {
+    "max_work_items": 10,
+    "timeout_seconds": 30,
+    "max_retries": 1,
+    "max_output_bytes": 4096
+  },
+  "cursor": {
+    "resume_token": null,
+    "completed_child_ids": ["root-runtime-export"],
+    "pending_child_ids": []
+  },
+  "child_receipts": [
+    {
+      "child_id": "root-runtime-export",
+      "status": "completed",
+      "input_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "output_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    }
+  ],
+  "counts": {
+    "attempted": 1,
+    "completed": 1,
+    "skipped_completed": 0,
+    "failed": 0,
+    "blocked": 0
+  },
+  "digest_algorithm": "sha256-rfc8785-excluding-self-digest-v1",
+  "receipt_digest": "sha256:9999999999999999999999999999999999999999999999999999999999999999"
+}

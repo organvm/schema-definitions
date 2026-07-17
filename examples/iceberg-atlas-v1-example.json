@@ -1,0 +1,128 @@
+{
+  "contract_name": "iceberg-atlas.v1",
+  "contract_version": 1,
+  "atlas_id": "iceberg-atlas-fixture-20260716",
+  "snapshot_id": "snapshot-fixture-20260716",
+  "snapshot_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "generated_at": "2026-07-16T18:25:00Z",
+  "source_envelope_references": [
+    "source:src_provider_renamed_alpha_event_001"
+  ],
+  "assertion_evidence_references": ["assertion:operator-authority-fixture"],
+  "timelines": {
+    "operator_intent": [
+      {
+        "entry_id": "timeline-operator-fixture",
+        "event_reference": "event:evt_c4dd29c0ba4b171d9a7bf4278d2a3742a82a4b1b6b5b1664697d50adc04a992f",
+        "occurred_at": "2026-07-16T17:59:00Z",
+        "title": "Operator authority fixture",
+        "source_envelope_references": [
+          "source:src_provider_renamed_alpha_event_001"
+        ],
+        "evidence_references": ["assertion:operator-authority-fixture"]
+      }
+    ],
+    "artifact": [
+      {
+        "entry_id": "timeline-artifact-fixture",
+        "event_reference": "artifact:ideal-register-fixture-20260716",
+        "occurred_at": "2026-07-16T18:20:00Z",
+        "title": "Receipt-derived ideal register",
+        "source_envelope_references": [
+          "source:src_provider_renamed_alpha_event_001"
+        ],
+        "evidence_references": ["receipt:predicate-fixture-schema"]
+      }
+    ]
+  },
+  "zoom_levels": {
+    "system": [
+      {
+        "node_id": "node-system-fixture",
+        "title": "System",
+        "summary": "Frozen governance snapshot.",
+        "self_image_reference": "self-image:node-system-fixture",
+        "ideal_form_references": ["ideal-form:governed-memory-fixture"],
+        "evidence_references": ["receipt:atlas-fixture"]
+      }
+    ],
+    "organ": [
+      {
+        "node_id": "node-organ-fixture",
+        "title": "Organ",
+        "summary": "Governance owner.",
+        "self_image_reference": "self-image:node-organ-fixture",
+        "ideal_form_references": ["ideal-form:governed-memory-fixture"],
+        "evidence_references": ["receipt:atlas-fixture"]
+      }
+    ],
+    "repository": [
+      {
+        "node_id": "node-repository-fixture",
+        "title": "Repository",
+        "summary": "Schema owner.",
+        "self_image_reference": "self-image:node-repository-fixture",
+        "ideal_form_references": ["ideal-form:governed-memory-fixture"],
+        "evidence_references": ["receipt:atlas-fixture"]
+      }
+    ],
+    "document": [
+      {
+        "node_id": "node-document-fixture",
+        "title": "Document",
+        "summary": "Governed document.",
+        "self_image_reference": "self-image:node-document-fixture",
+        "ideal_form_references": ["ideal-form:governed-memory-fixture"],
+        "evidence_references": ["receipt:atlas-fixture"]
+      }
+    ],
+    "session": [
+      {
+        "node_id": "node-session-fixture",
+        "title": "Session",
+        "summary": "Custodied session.",
+        "self_image_reference": "self-image:node-session-fixture",
+        "ideal_form_references": ["ideal-form:governed-memory-fixture"],
+        "evidence_references": ["receipt:atlas-fixture"]
+      }
+    ],
+    "atom": [
+      {
+        "node_id": "node-atom-fixture",
+        "title": "Atom",
+        "summary": "Normalized authority event.",
+        "self_image_reference": "self-image:node-atom-fixture",
+        "ideal_form_references": ["ideal-form:governed-memory-fixture"],
+        "evidence_references": ["receipt:atlas-fixture"]
+      }
+    ]
+  },
+  "relationships": [
+    {
+      "relationship_id": "relationship-system-event-fixture",
+      "from_node_id": "node-system-fixture",
+      "to_node_id": "node-atom-fixture",
+      "relationship_type": "contains",
+      "evidence_references": ["receipt:atlas-fixture"]
+    }
+  ],
+  "ideal_forms": ["ideal-form:governed-memory-fixture"],
+  "self_images": [
+    "self-image:node-system-fixture",
+    "self-image:node-organ-fixture",
+    "self-image:node-repository-fixture",
+    "self-image:node-document-fixture",
+    "self-image:node-session-fixture",
+    "self-image:node-atom-fixture"
+  ],
+  "coverage": {
+    "exact_all": true,
+    "source_count": 1,
+    "event_count": 1,
+    "node_count": 6,
+    "ideal_form_count": 1
+  },
+  "citation_debt": [],
+  "digest_algorithm": "sha256-rfc8785-excluding-self-digest-v1",
+  "atlas_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666"
+}

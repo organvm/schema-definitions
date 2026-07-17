@@ -28,6 +28,16 @@ EXAMPLES_DIR = Path(__file__).resolve().parent.parent / "examples"
 
 # Map file name patterns to schemas
 SCHEMA_MAP = {
+    "governance-snapshot-bundle": "governance-snapshot-bundle.v1.schema.json",
+    "governance-cadence-receipt": "governance-cadence-receipt.v1.schema.json",
+    "governance-stage-receipt": "governance-stage-receipt.v1.schema.json",
+    "governance-atlas-receipt": "governance-atlas-receipt.v1.schema.json",
+    "normalization-parity-receipt": "normalization-parity-receipt.v1.schema.json",
+    "node-self-image-set": "node-self-image-set.v1.schema.json",
+    "ideal-form-register": "ideal-form-register.v1.schema.json",
+    "normalized-event": "normalized-event.v1.schema.json",
+    "source-census": "source-census.v1.schema.json",
+    "iceberg-atlas": "iceberg-atlas.v1.schema.json",
     "owner-reference": "owner-reference.v1.schema.json",
     "parameter-contract": "parameter-contract.v1.schema.json",
     "source-envelope": "source-envelope.v1.schema.json",

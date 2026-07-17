@@ -1,0 +1,240 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://meta-organvm.github.io/schema-definitions/node-self-image-set.v1.schema.json",
+  "title": "Node Self Image Set v1",
+  "description": "Deterministic export containing exactly one schema-valid self-image for every registered node and no unregistered images.",
+  "type": "object",
+  "required": [
+    "contract_name",
+    "contract_version",
+    "set_id",
+    "snapshot_id",
+    "snapshot_digest",
+    "registry_reference",
+    "registry_digest",
+    "registered_node_ids",
+    "self_images",
+    "counts",
+    "readiness",
+    "digest_algorithm",
+    "set_digest"
+  ],
+  "properties": {
+    "contract_name": {"const": "node-self-image-set.v1"},
+    "contract_version": {"const": 1},
+    "set_id": {"type": "string", "minLength": 1},
+    "snapshot_id": {"type": "string", "minLength": 1},
+    "snapshot_digest": {"$ref": "#/$defs/digest"},
+    "registry_reference": {"type": "string", "minLength": 1},
+    "registry_digest": {"$ref": "#/$defs/digest"},
+    "registered_node_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "self_images": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/self_image"}
+    },
+    "counts": {
+      "type": "object",
+      "required": ["registered", "exported"],
+      "properties": {
+        "registered": {"type": "integer", "minimum": 1},
+        "exported": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": false
+    },
+    "readiness": {"$ref": "#/$defs/readiness"},
+    "digest_algorithm": {
+      "const": "sha256-rfc8785-excluding-self-digest-v1",
+      "description": "RFC 8785 canonical JSON, excluding set_digest itself."
+    },
+    "set_digest": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "reference_list": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "relation_list": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "relation_type",
+          "target_node_id",
+          "evidence_references"
+        ],
+        "properties": {
+          "relation_type": {"type": "string", "minLength": 1},
+          "target_node_id": {"type": "string", "minLength": 1},
+          "evidence_references": {"$ref": "#/$defs/reference_list"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "self_image": {
+      "type": "object",
+      "required": [
+        "contract_name",
+        "contract_version",
+        "node_id",
+        "node_type",
+        "owner_reference",
+        "relations",
+        "cursors",
+        "digests",
+        "observations",
+        "active_ideal_forms",
+        "reconciled_at",
+        "evidence_references"
+      ],
+      "properties": {
+        "contract_name": {"const": "node-self-image.v1"},
+        "contract_version": {"const": 1},
+        "node_id": {"type": "string", "minLength": 1},
+        "node_type": {
+          "type": "string",
+          "enum": [
+            "organ",
+            "repository",
+            "module",
+            "document",
+            "session",
+            "artifact"
+          ]
+        },
+        "display_name": {"type": "string", "minLength": 1},
+        "owner_reference": {"type": "string", "minLength": 1},
+        "relations": {
+          "type": "object",
+          "required": ["incoming", "outgoing"],
+          "properties": {
+            "incoming": {"$ref": "#/$defs/relation_list"},
+            "outgoing": {"$ref": "#/$defs/relation_list"}
+          },
+          "additionalProperties": false
+        },
+        "cursors": {
+          "type": "object",
+          "required": ["memory", "event"],
+          "properties": {
+            "memory": {"type": ["string", "null"]},
+            "event": {"type": ["string", "null"]}
+          },
+          "additionalProperties": false
+        },
+        "digests": {
+          "type": "object",
+          "required": ["constitutional", "topology"],
+          "properties": {
+            "constitutional": {"$ref": "#/$defs/digest"},
+            "topology": {"$ref": "#/$defs/digest"}
+          },
+          "additionalProperties": false
+        },
+        "observations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["key", "value", "observed_at", "evidence_references"],
+            "properties": {
+              "key": {"type": "string", "minLength": 1},
+              "value": true,
+              "observed_at": {"type": "string", "format": "date-time"},
+              "evidence_references": {"$ref": "#/$defs/reference_list"}
+            },
+            "additionalProperties": false
+          }
+        },
+        "active_ideal_forms": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "form_id",
+              "implementation_state",
+              "distance_to_ideal",
+              "predicate_references",
+              "evidence_references"
+            ],
+            "properties": {
+              "form_id": {"type": "string", "minLength": 1},
+              "implementation_state": {
+                "type": "string",
+                "enum": [
+                  "not_started",
+                  "partial",
+                  "implemented",
+                  "verified",
+                  "blocked",
+                  "superseded"
+                ]
+              },
+              "distance_to_ideal": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "predicate_references": {"$ref": "#/$defs/reference_list"},
+              "evidence_references": {"$ref": "#/$defs/reference_list"}
+            },
+            "additionalProperties": false
+          }
+        },
+        "reconciled_at": {"type": "string", "format": "date-time"},
+        "evidence_references": {"$ref": "#/$defs/reference_list"}
+      },
+      "additionalProperties": false
+    },
+    "readiness": {
+      "type": "object",
+      "required": [
+        "exact_all",
+        "unresolved_blockers",
+        "quarantines",
+        "missing_requirements",
+        "citation_debt",
+        "incomplete_predicates",
+        "ready",
+        "status"
+      ],
+      "properties": {
+        "exact_all": {"type": "boolean"},
+        "unresolved_blockers": {"$ref": "#/$defs/debt_list"},
+        "quarantines": {"$ref": "#/$defs/debt_list"},
+        "missing_requirements": {"$ref": "#/$defs/debt_list"},
+        "citation_debt": {"$ref": "#/$defs/debt_list"},
+        "incomplete_predicates": {"$ref": "#/$defs/debt_list"},
+        "ready": {"type": "boolean"},
+        "status": {
+          "type": "string",
+          "enum": [
+            "incomplete",
+            "blocked",
+            "ready",
+            "closed_with_owner_routed_debt"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "debt_list": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    }
+  },
+  "additionalProperties": false
+}

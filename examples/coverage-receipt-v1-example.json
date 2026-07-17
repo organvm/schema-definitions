@@ -36,6 +36,12 @@
   },
   "exact_all": true,
   "ready": false,
+  "unresolved_blockers": ["src_provider_new_beta_expected_001"],
+  "quarantines": [],
+  "missing_requirements": [],
+  "citation_debt": [],
+  "incomplete_predicates": [],
+  "closure_status": "closed_with_owner_routed_debt",
   "residual_owners": [
     {
       "source_id": "src_provider_new_beta_expected_001",

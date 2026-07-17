@@ -1,0 +1,208 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://meta-organvm.github.io/schema-definitions/ideal-form-register.v1.schema.json",
+  "title": "Ideal Form Register v1",
+  "description": "Receipt-derived register of controlling formulations, implementation predicates, and distance to ideal. Status and distance are computed from cited predicate receipts, never handwritten pass/fail values.",
+  "type": "object",
+  "required": [
+    "contract_name",
+    "contract_version",
+    "register_id",
+    "snapshot_id",
+    "snapshot_digest",
+    "generated_at",
+    "ideal_forms",
+    "coverage",
+    "readiness",
+    "digest_algorithm",
+    "register_digest"
+  ],
+  "properties": {
+    "contract_name": {"const": "ideal-form-register.v1"},
+    "contract_version": {"const": 1},
+    "register_id": {"type": "string", "minLength": 1},
+    "snapshot_id": {"type": "string", "minLength": 1},
+    "snapshot_digest": {"$ref": "#/$defs/digest"},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "ideal_forms": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/ideal_form"}
+    },
+    "coverage": {
+      "type": "object",
+      "required": ["registered", "verified", "blocked", "incomplete"],
+      "properties": {
+        "registered": {"type": "integer", "minimum": 1},
+        "verified": {"type": "integer", "minimum": 0},
+        "blocked": {"type": "integer", "minimum": 0},
+        "incomplete": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "readiness": {"$ref": "#/$defs/readiness"},
+    "digest_algorithm": {
+      "const": "sha256-rfc8785-excluding-self-digest-v1",
+      "description": "RFC 8785 canonical JSON, excluding register_digest itself."
+    },
+    "register_digest": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "ideal_form": {
+      "type": "object",
+      "required": [
+        "ideal_form_id",
+        "title",
+        "controlling_formulation",
+        "source_envelope_references",
+        "lineage_references",
+        "owner_reference",
+        "implementation_state",
+        "distance_to_ideal",
+        "predicates",
+        "assertion_evidence_references",
+        "derivation",
+        "receipt_target",
+        "residual_gaps"
+      ],
+      "properties": {
+        "ideal_form_id": {"type": "string", "minLength": 1},
+        "title": {"type": "string", "minLength": 1},
+        "controlling_formulation": {"type": "string", "minLength": 1},
+        "source_envelope_references": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "lineage_references": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "owner_reference": {"type": "string", "minLength": 1},
+        "implementation_state": {
+          "type": "string",
+          "enum": ["partial", "verified", "blocked"]
+        },
+        "distance_to_ideal": {
+          "type": "object",
+          "required": [
+            "classification",
+            "verified_predicates",
+            "total_predicates"
+          ],
+          "properties": {
+            "classification": {
+              "type": "string",
+              "enum": ["partial", "verified", "blocked"]
+            },
+            "verified_predicates": {"type": "integer", "minimum": 0},
+            "total_predicates": {"type": "integer", "minimum": 1}
+          },
+          "additionalProperties": false
+        },
+        "predicates": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "predicate_id",
+              "statement",
+              "result",
+              "receipt_reference",
+              "evidence_references"
+            ],
+            "properties": {
+              "predicate_id": {"type": "string", "minLength": 1},
+              "statement": {"type": "string", "minLength": 1},
+              "result": {
+                "type": "string",
+                "enum": ["pass", "fail", "blocked"]
+              },
+              "receipt_reference": {"type": "string", "minLength": 1},
+              "evidence_references": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {"type": "string", "minLength": 1}
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "assertion_evidence_references": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "derivation": {
+          "type": "object",
+          "required": ["algorithm", "receipt_references"],
+          "properties": {
+            "algorithm": {"const": "predicate-receipt-status-v1"},
+            "receipt_references": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {"type": "string", "minLength": 1}
+            }
+          },
+          "additionalProperties": false
+        },
+        "receipt_target": {"type": "string", "minLength": 1},
+        "residual_gaps": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      },
+      "additionalProperties": false
+    },
+    "readiness": {
+      "type": "object",
+      "required": [
+        "exact_all",
+        "unresolved_blockers",
+        "quarantines",
+        "missing_requirements",
+        "citation_debt",
+        "incomplete_predicates",
+        "ready",
+        "status"
+      ],
+      "properties": {
+        "exact_all": {"type": "boolean"},
+        "unresolved_blockers": {"$ref": "#/$defs/debt_list"},
+        "quarantines": {"$ref": "#/$defs/debt_list"},
+        "missing_requirements": {"$ref": "#/$defs/debt_list"},
+        "citation_debt": {"$ref": "#/$defs/debt_list"},
+        "incomplete_predicates": {"$ref": "#/$defs/debt_list"},
+        "ready": {"type": "boolean"},
+        "status": {
+          "type": "string",
+          "enum": [
+            "incomplete",
+            "blocked",
+            "ready",
+            "closed_with_owner_routed_debt"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "debt_list": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    }
+  },
+  "additionalProperties": false
+}

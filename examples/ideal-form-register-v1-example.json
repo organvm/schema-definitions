@@ -1,0 +1,62 @@
+{
+  "contract_name": "ideal-form-register.v1",
+  "contract_version": 1,
+  "register_id": "ideal-register-fixture-20260716",
+  "snapshot_id": "snapshot-fixture-20260716",
+  "snapshot_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "generated_at": "2026-07-16T18:20:00Z",
+  "ideal_forms": [
+    {
+      "ideal_form_id": "ideal-form:governed-memory-fixture",
+      "title": "Governed memory fixture",
+      "controlling_formulation": "Every discovered raw unit is classified exactly once and every activated directive resolves to verified authority evidence.",
+      "source_envelope_references": [
+        "source:src_provider_renamed_alpha_event_001"
+      ],
+      "lineage_references": ["lineage:fixture-prime-directive-lineage"],
+      "owner_reference": "owner_governance_registry",
+      "implementation_state": "verified",
+      "distance_to_ideal": {
+        "classification": "verified",
+        "verified_predicates": 1,
+        "total_predicates": 1
+      },
+      "predicates": [
+        {
+          "predicate_id": "predicate-fixture-schema",
+          "statement": "The governing contracts validate with complete, nonempty content.",
+          "result": "pass",
+          "receipt_reference": "receipt:predicate-fixture-schema",
+          "evidence_references": ["evidence:predicate-fixture-schema"]
+        }
+      ],
+      "assertion_evidence_references": [
+        "assertion:operator-authority-fixture"
+      ],
+      "derivation": {
+        "algorithm": "predicate-receipt-status-v1",
+        "receipt_references": ["receipt:predicate-fixture-schema"]
+      },
+      "receipt_target": "receipt://ideal-form/governed-memory-fixture",
+      "residual_gaps": []
+    }
+  ],
+  "coverage": {
+    "registered": 1,
+    "verified": 1,
+    "blocked": 0,
+    "incomplete": 0
+  },
+  "readiness": {
+    "exact_all": true,
+    "unresolved_blockers": [],
+    "quarantines": [],
+    "missing_requirements": [],
+    "citation_debt": [],
+    "incomplete_predicates": [],
+    "ready": true,
+    "status": "ready"
+  },
+  "digest_algorithm": "sha256-rfc8785-excluding-self-digest-v1",
+  "register_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+}

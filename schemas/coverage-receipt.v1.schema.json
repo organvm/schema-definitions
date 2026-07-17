@@ -6,7 +6,9 @@
   "type": "object",
   "required": [
     "contract_name", "contract_version", "receipt_id", "snapshot_id", "generated_at",
-    "denominator", "sources", "counts", "exact_all", "ready", "residual_owners", "receipt_hash"
+    "denominator", "sources", "counts", "exact_all", "ready", "unresolved_blockers",
+    "quarantines", "missing_requirements", "citation_debt", "incomplete_predicates",
+    "closure_status", "residual_owners", "receipt_hash"
   ],
   "properties": {
     "contract_name": {"const": "coverage-receipt.v1"},
@@ -71,7 +73,16 @@
     "exact_all": {"type": "boolean"},
     "ready": {
       "type": "boolean",
-      "description": "True only when exact coverage is established and every discovered source is parsed with no residual owner debt."
+      "description": "True only when exact coverage is established, every discovered source is parsed, and blocker, quarantine, requirement, citation, and predicate debt are empty."
+    },
+    "unresolved_blockers": {"$ref": "#/$defs/debt_list"},
+    "quarantines": {"$ref": "#/$defs/debt_list"},
+    "missing_requirements": {"$ref": "#/$defs/debt_list"},
+    "citation_debt": {"$ref": "#/$defs/debt_list"},
+    "incomplete_predicates": {"$ref": "#/$defs/debt_list"},
+    "closure_status": {
+      "type": "string",
+      "enum": ["incomplete", "blocked", "ready", "closed_with_owner_routed_debt"]
     },
     "residual_owners": {
       "type": "array",
@@ -88,6 +99,13 @@
       }
     },
     "receipt_hash": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"}
+  },
+  "$defs": {
+    "debt_list": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    }
   },
   "additionalProperties": false
 }

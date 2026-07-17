@@ -33,6 +33,22 @@ embed a provider catalog or deployment-specific path.
 | `coverage-receipt.v1.schema.json` | Dynamic denominator, exact classification, separate readiness, and residual owners |
 | `owner-reference.v1.schema.json` | Stable owner IDs resolved through owner-native records |
 | `parameter-contract.v1.schema.json` | Typed runtime parameters, validation, freshness, and secret-reference policy |
+| `source-census.v1.schema.json` | Runtime enumeration of Git refs, workspaces, custody manifests, application stores, exports, and connectors |
+| `normalized-event.v1.schema.json` | Stable native event identity independent of snapshot and transport position |
+| `normalization-parity-receipt.v1.schema.json` | Complete raw-unit-to-event-or-disposition promotion crosswalk |
+| `ideal-form-register.v1.schema.json` | Receipt-derived ideal status, implementation predicates, and distance |
+| `iceberg-atlas.v1.schema.json` | Two authority timelines and six populated graph zooms |
+| `node-self-image-set.v1.schema.json` | Exactly one valid self-image for every registered node |
+| `governance-stage-receipt.v1.schema.json` | Bounded, resumable receipt for one cadence stage |
+| `governance-cadence-receipt.v1.schema.json` | Ordered nine-stage receipt chain and fixed-point evidence |
+| `governance-atlas-receipt.v1.schema.json` | Assertion, ideal, self-image, timeline, zoom, and Atlas readiness |
+| `governance-snapshot-bundle.v1.schema.json` | Frozen cross-owner bundle with two-run and post-proof idempotence |
+
+`exact_all` means complete classification of the declared denominator. It does
+not mean ready. Wherever a contract exposes `readiness`, `ready` additionally
+requires no unresolved blockers, quarantines, missing requirements, citation
+debt, or incomplete predicates. `closed_with_owner_routed_debt` is an honest
+closure state but can never alias `ready`.
 
 ## Usage
 
@@ -46,6 +62,9 @@ python scripts/validate.py --all-examples
 # Validate governance-memory shape and cross-field invariants
 python scripts/validate_governance_memory.py \
   examples/{owner-reference,parameter-contract,source-envelope,assertion-evidence,lineage-graph,governance-testament,node-self-image,coverage-receipt}-v1-example.json
+
+# The same validator covers the truth-first census, normalization, Atlas,
+# cadence, and frozen-bundle contracts listed above.
 
 # Run tests
 pytest

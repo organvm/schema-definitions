@@ -1,0 +1,75 @@
+{
+  "contract_name": "governance-atlas-receipt.v1",
+  "contract_version": 1,
+  "atlas_receipt_id": "atlas-receipt-fixture-20260716",
+  "snapshot_id": "snapshot-fixture-20260716",
+  "snapshot_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "owner_reference": "owner_governance_atlas",
+  "generated_at": "2026-07-16T18:25:01Z",
+  "source_envelope_set": {
+    "artifact_id": "source-envelope-set-fixture",
+    "reference": "bundle://snapshot-fixture-20260716/source-envelopes",
+    "snapshot_id": "snapshot-fixture-20260716",
+    "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "count": 1
+  },
+  "assertion_evidence_set": {
+    "artifact_id": "assertion-evidence-set-fixture",
+    "reference": "bundle://snapshot-fixture-20260716/assertion-evidence",
+    "snapshot_id": "snapshot-fixture-20260716",
+    "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "count": 1
+  },
+  "ideal_form_register": {
+    "artifact_id": "ideal-register-fixture-20260716",
+    "reference": "examples/ideal-form-register-v1-example.json",
+    "snapshot_id": "snapshot-fixture-20260716",
+    "digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+  },
+  "node_self_image_set": {
+    "artifact_id": "self-image-set-fixture-20260716",
+    "reference": "examples/node-self-image-set-v1-example.json",
+    "snapshot_id": "snapshot-fixture-20260716",
+    "digest": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+    "count": 1
+  },
+  "iceberg_atlas": {
+    "artifact_id": "iceberg-atlas-fixture-20260716",
+    "reference": "examples/iceberg-atlas-v1-example.json",
+    "snapshot_id": "snapshot-fixture-20260716",
+    "digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666"
+  },
+  "timeline_counts": {
+    "operator_intent": 1,
+    "artifact": 1
+  },
+  "zoom_counts": {
+    "system": 1,
+    "organ": 1,
+    "repository": 1,
+    "document": 1,
+    "session": 1,
+    "atom": 1
+  },
+  "predicate_results": {
+    "source_envelopes_resolved": true,
+    "assertions_verified": true,
+    "ideal_forms_complete": true,
+    "self_images_complete": true,
+    "timelines_complete": true,
+    "zooms_complete": true,
+    "atlas_digest_verified": true
+  },
+  "readiness": {
+    "exact_all": true,
+    "unresolved_blockers": [],
+    "quarantines": [],
+    "missing_requirements": [],
+    "citation_debt": [],
+    "incomplete_predicates": [],
+    "ready": true,
+    "status": "ready"
+  },
+  "digest_algorithm": "sha256-rfc8785-excluding-self-digest-v1",
+  "receipt_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+}
