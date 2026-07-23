@@ -4,8 +4,15 @@
   "set_id": "self-image-set-fixture-20260716",
   "snapshot_id": "snapshot-fixture-20260716",
   "snapshot_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-  "registry_reference": "registry://fixture/nodes",
-  "registry_digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+  "registry_reference": "#/registry_projection",
+  "registry_projection": [
+    {
+      "uid": "ent_repo_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+      "entity_type": "repo",
+      "lifecycle_status": "active"
+    }
+  ],
+  "registry_digest": "sha256:03d6d20167b30e10de09b2ae256b6a504d8b0884076048fcfaab97e257cd7d22",
   "registered_node_ids": [
     "ent_repo_01ARZ3NDEKTSV4RRFFQ69G5FAV"
   ],

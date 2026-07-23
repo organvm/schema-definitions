@@ -866,15 +866,59 @@ def _ideal_form_register_errors(data: dict[str, Any]) -> list[str]:
 
 def _node_self_image_set_errors(data: dict[str, Any]) -> list[str]:
     errors: list[str] = []
+    registry_projection = data.get("registry_projection")
     registered_node_ids = data.get("registered_node_ids")
     self_images = data.get("self_images")
     counts = data.get("counts")
     if (
-        not isinstance(registered_node_ids, list)
+        not isinstance(registry_projection, list)
+        or not isinstance(registered_node_ids, list)
         or not isinstance(self_images, list)
         or not isinstance(counts, dict)
     ):
         return errors
+
+    projection_node_ids = [
+        node.get("uid") for node in registry_projection if isinstance(node, dict)
+    ]
+    duplicate_projection_nodes = _duplicates(projection_node_ids)
+    if duplicate_projection_nodes:
+        errors.append(
+            "registry_projection contains duplicate uid values: "
+            f"{duplicate_projection_nodes}"
+        )
+    projection_ordered = projection_node_ids == sorted(
+        node_id for node_id in projection_node_ids if isinstance(node_id, str)
+    )
+    if not projection_ordered:
+        errors.append("registry_projection must be ordered by ascending uid")
+
+    reference_matches = data.get("registry_reference") == "#/registry_projection"
+    if not reference_matches:
+        errors.append(
+            "registry_reference must resolve to the embedded registry_projection"
+        )
+    try:
+        canonical_projection = rfc8785.dumps(registry_projection)
+    except rfc8785.CanonicalizationError:
+        digest_matches = False
+        errors.append("registry_projection must be RFC 8785 canonicalizable")
+    else:
+        expected_registry_digest = (
+            "sha256:" + hashlib.sha256(canonical_projection).hexdigest()
+        )
+        digest_matches = data.get("registry_digest") == expected_registry_digest
+        if not digest_matches:
+            errors.append(
+                "registry_digest must equal sha256(RFC 8785 registry_projection)"
+            )
+
+    denominator_matches = registered_node_ids == projection_node_ids
+    if not denominator_matches:
+        errors.append(
+            "registered_node_ids must derive exactly, in order, from "
+            "registry_projection uid values"
+        )
 
     image_node_ids = [
         image.get("node_id") for image in self_images if isinstance(image, dict)
@@ -900,15 +944,26 @@ def _node_self_image_set_errors(data: dict[str, Any]) -> list[str]:
         errors.append(
             f"self-images exist for unregistered nodes: {extra_images}"
         )
+    image_order_matches = image_node_ids == registered_node_ids
+    if not image_order_matches:
+        errors.append(
+            "self_images must follow the registered_node_ids order"
+        )
     if counts.get("registered") != len(registered_node_ids):
         errors.append("counts.registered must equal registered_node_ids length")
     if counts.get("exported") != len(self_images):
         errors.append("counts.exported must equal self_images length")
 
     exact_all = (
-        not duplicate_images
+        not duplicate_projection_nodes
+        and projection_ordered
+        and reference_matches
+        and digest_matches
+        and denominator_matches
+        and not duplicate_images
         and not missing_images
         and not extra_images
+        and image_order_matches
         and counts.get("registered") == len(registered_node_ids)
         and counts.get("exported") == len(self_images)
     )
