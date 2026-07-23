@@ -164,6 +164,12 @@ def _source_census_errors(data: dict[str, Any]) -> list[str]:
             f"{duplicate_expectations}"
         )
     known_expectations = set(expectation_ids)
+    expectations_by_id = {
+        item.get("expectation_id"): item
+        for item in expectations or []
+        if isinstance(item, dict)
+        and isinstance(item.get("expectation_id"), str)
+    }
 
     raw_unit_ids = [
         item.get("raw_unit_id") for item in raw_units if isinstance(item, dict)
@@ -171,6 +177,22 @@ def _source_census_errors(data: dict[str, Any]) -> list[str]:
     duplicate_units = _duplicates(raw_unit_ids)
     if duplicate_units:
         errors.append(f"raw_units contain duplicate raw_unit_id values: {duplicate_units}")
+
+    raw_expectation_ids = [
+        item.get("expectation_id")
+        for item in raw_units
+        if isinstance(item, dict) and item.get("expectation_id") is not None
+    ]
+    raw_expectation_counts = Counter(raw_expectation_ids)
+    for expectation_id, expectation in expectations_by_id.items():
+        if (
+            expectation.get("required") is True
+            and raw_expectation_counts.get(expectation_id, 0) != 1
+        ):
+            errors.append(
+                f"required seed expectation {expectation_id!r} must be represented "
+                "by exactly one raw_unit.expectation_id"
+            )
 
     for raw_unit in raw_units:
         if not isinstance(raw_unit, dict):
@@ -184,6 +206,15 @@ def _source_census_errors(data: dict[str, Any]) -> list[str]:
         if expectation_id is not None and expectation_id not in known_expectations:
             errors.append(
                 f"raw unit {raw_unit_id!r} references an unknown expectation_id"
+            )
+        expectation = expectations_by_id.get(expectation_id)
+        if (
+            isinstance(expectation, dict)
+            and raw_unit.get("source_family") != expectation.get("source_family")
+        ):
+            errors.append(
+                f"raw unit {raw_unit_id!r} source_family must match seed expectation "
+                f"{expectation_id!r}"
             )
     return errors
 
@@ -238,9 +269,26 @@ def _normalization_parity_errors(data: dict[str, Any]) -> list[str]:
         return errors
 
     raw_unit_ids = input_census.get("raw_unit_ids")
+    raw_units = input_census.get("raw_units")
     output_event_ids = output_events.get("event_ids")
-    if not isinstance(raw_unit_ids, list) or not isinstance(output_event_ids, list):
+    if (
+        not isinstance(raw_unit_ids, list)
+        or not isinstance(raw_units, list)
+        or not isinstance(output_event_ids, list)
+    ):
         return errors
+
+    raw_unit_binding_ids = [
+        raw_unit.get("raw_unit_id")
+        for raw_unit in raw_units
+        if isinstance(raw_unit, dict)
+    ]
+    duplicate_bindings = _duplicates(raw_unit_binding_ids)
+    if duplicate_bindings:
+        errors.append(
+            "input_census.raw_units contains duplicate raw_unit_id values: "
+            f"{duplicate_bindings}"
+        )
 
     promotion_ids = [
         promotion.get("raw_unit_id")
@@ -256,6 +304,28 @@ def _normalization_parity_errors(data: dict[str, Any]) -> list[str]:
 
     raw_unit_id_set = {
         value for value in raw_unit_ids if isinstance(value, str)
+    }
+    raw_unit_binding_id_set = {
+        value for value in raw_unit_binding_ids if isinstance(value, str)
+    }
+    missing_bindings = sorted(raw_unit_id_set - raw_unit_binding_id_set)
+    extra_bindings = sorted(raw_unit_binding_id_set - raw_unit_id_set)
+    if missing_bindings:
+        errors.append(
+            "input_census.raw_units omits raw_unit_ids values: "
+            f"{missing_bindings}"
+        )
+    if extra_bindings:
+        errors.append(
+            "input_census.raw_units contains raw_unit_id values outside raw_unit_ids: "
+            f"{extra_bindings}"
+        )
+
+    raw_unit_content_hashes = {
+        raw_unit.get("raw_unit_id"): raw_unit.get("content_hash")
+        for raw_unit in raw_units
+        if isinstance(raw_unit, dict)
+        and isinstance(raw_unit.get("raw_unit_id"), str)
     }
     promotion_id_set = {
         value for value in promotion_ids if isinstance(value, str)
@@ -273,15 +343,30 @@ def _normalization_parity_errors(data: dict[str, Any]) -> list[str]:
 
     promoted_event_ids: set[Any] = set()
     disposition_types: dict[Any, Any] = {}
+    content_binding_mismatches: list[str] = []
     for promotion in promotions:
         if not isinstance(promotion, dict):
             continue
+        raw_unit_id = promotion.get("raw_unit_id")
+        if (
+            isinstance(raw_unit_id, str)
+            and raw_unit_id in raw_unit_content_hashes
+            and promotion.get("raw_unit_content_hash")
+            != raw_unit_content_hashes[raw_unit_id]
+        ):
+            content_binding_mismatches.append(raw_unit_id)
         event_ids = promotion.get("event_ids")
         if isinstance(event_ids, list):
             promoted_event_ids.update(event_ids)
         disposition = promotion.get("disposition")
         if isinstance(disposition, dict):
             disposition_types[promotion.get("raw_unit_id")] = disposition.get("type")
+    if content_binding_mismatches:
+        errors.append(
+            "promotions contain raw_unit_content_hash values that do not match "
+            "input_census.raw_units: "
+            f"{sorted(content_binding_mismatches)}"
+        )
 
     output_event_id_set = {
         value for value in output_event_ids if isinstance(value, str)
@@ -329,8 +414,12 @@ def _normalization_parity_errors(data: dict[str, Any]) -> list[str]:
 
     exact_all = (
         not duplicate_promotions
+        and not duplicate_bindings
+        and not missing_bindings
+        and not extra_bindings
         and not missing_promotions
         and not extra_promotions
+        and not content_binding_mismatches
         and not missing_output_events
         and not extra_output_events
     )
@@ -350,6 +439,19 @@ def _normalization_parity_errors(data: dict[str, Any]) -> list[str]:
 
 def _coverage_errors(data: dict[str, Any]) -> list[str]:
     errors: list[str] = []
+    constitutional_scope = data.get("constitutional_scope")
+    if isinstance(constitutional_scope, dict):
+        expected_constitutional_ready = (
+            constitutional_scope.get("exact_all") is True
+            and not constitutional_scope.get("blocked_scopes")
+            and not constitutional_scope.get("missing_requirements")
+        )
+        if constitutional_scope.get("ready") is not expected_constitutional_ready:
+            errors.append(
+                "constitutional_scope.ready must be true exactly when its scope is "
+                "exact and has no blocked scopes or missing requirements"
+            )
+
     sources = data.get("sources")
     denominator = data.get("denominator")
     counts = data.get("counts")
@@ -454,9 +556,12 @@ def _coverage_errors(data: dict[str, Any]) -> list[str]:
         "incomplete_predicates": expected_incomplete_predicates,
     }
     for field, expected in debt_expectations.items():
-        if set(data.get(field, [])) != expected:
+        actual = set(data.get(field, []))
+        missing = expected - actual
+        if missing:
             errors.append(
-                f"{field} must exactly name the source records carrying that debt"
+                f"{field} must include every source record carrying that debt: "
+                + ", ".join(sorted(str(item) for item in missing))
             )
 
     all_debt = [
@@ -542,6 +647,14 @@ def _assertion_errors(data: dict[str, Any]) -> list[str]:
             errors.append(
                 "a verified operator_directive is missing evidence types: "
                 + ", ".join(missing)
+            )
+        freshness = data.get("freshness")
+        if not isinstance(freshness, dict) or freshness.get("status") not in {
+            "fresh",
+            "not_applicable",
+        }:
+            errors.append(
+                "a verified operator_directive requires non-stale freshness"
             )
     if assertion_class == "current_state":
         required = {"owner_record", "fresh_verifier_receipt"}
@@ -1113,18 +1226,34 @@ def _governance_cadence_receipt_errors(data: dict[str, Any]) -> list[str]:
 
     run_number = data.get("run_number")
     previous_digest = data.get("previous_cadence_receipt_digest")
+    previous_output_digest = fixed_point.get("previous_output_digest")
     if run_number == 1 and previous_digest is not None:
         errors.append("cadence run 1 must not name a previous cadence receipt")
     if isinstance(run_number, int) and run_number > 1 and previous_digest is None:
         errors.append("cadence runs after run 1 must bind the previous cadence receipt")
+    if run_number == 1 and previous_output_digest is not None:
+        errors.append("cadence run 1 must not name a previous output digest")
+    if run_number == 2 and previous_output_digest is None:
+        errors.append("cadence run 2 must bind the previous output digest")
+
+    output_matches_previous = (
+        previous_output_digest is not None
+        and previous_output_digest == data.get("output_digest")
+    )
+    if fixed_point.get("output_digest_matches_previous") is not output_matches_previous:
+        errors.append(
+            "fixed_point.output_digest_matches_previous must equal the comparison "
+            "between fixed_point.previous_output_digest and output_digest"
+        )
 
     fixed_status = fixed_point.get("status")
     fixed_proven = (
-        fixed_status == "proven"
+        run_number == 2
+        and fixed_status == "proven"
         and fixed_point.get("new_event_count") == 0
         and fixed_point.get("changed_byte_count") == 0
         and fixed_point.get("replayed_completed_children") == 0
-        and fixed_point.get("output_digest_matches_previous") is True
+        and output_matches_previous
     )
     if fixed_status == "proven" and not fixed_proven:
         errors.append(
@@ -1133,8 +1262,6 @@ def _governance_cadence_receipt_errors(data: dict[str, Any]) -> list[str]:
         )
     if previous_digest is None and fixed_status != "not_applicable":
         errors.append("the first cadence run fixed point must be not_applicable")
-    if previous_digest is not None and not fixed_proven:
-        errors.append("a repeated cadence run must prove the fixed point")
 
     all_completed = all(
         isinstance(receipt, dict) and receipt.get("status") == "completed"
@@ -1145,13 +1272,13 @@ def _governance_cadence_receipt_errors(data: dict[str, Any]) -> list[str]:
         and chain_complete
         and not duplicate_receipts
         and len(stage_receipts) == len(CADENCE_STAGES)
+        and fixed_proven
     )
     errors.extend(
         _readiness_errors(
             data,
             exact_all=exact_all,
-            prerequisites_ready=all_completed
-            and (previous_digest is None or fixed_proven),
+            prerequisites_ready=all_completed and fixed_proven,
         )
     )
     return errors

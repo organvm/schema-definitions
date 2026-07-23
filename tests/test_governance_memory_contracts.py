@@ -79,6 +79,60 @@ def test_provider_names_are_runtime_data_not_a_fixed_catalog():
         assert list(validator.iter_errors(candidate)) == []
 
 
+def test_required_source_expectation_cannot_disappear_from_census():
+    data = load(EXAMPLES_DIR / "source-census-v1-example.json")
+    data["raw_units"] = [
+        raw_unit
+        for raw_unit in data["raw_units"]
+        if raw_unit.get("expectation_id") != "expectation-owner-export"
+    ]
+
+    schema_errors, invariant_errors = validate_document(data)
+    assert schema_errors == []
+    assert any(
+        "must be represented by exactly one raw_unit.expectation_id" in error
+        for error in invariant_errors
+    )
+
+
+def test_required_source_expectation_is_represented_exactly_once():
+    data = load(EXAMPLES_DIR / "source-census-v1-example.json")
+    duplicate = copy.deepcopy(data["raw_units"][1])
+    duplicate["raw_unit_id"] = "raw_fixture_expected_duplicate"
+    data["raw_units"].append(duplicate)
+
+    schema_errors, invariant_errors = validate_document(data)
+    assert schema_errors == []
+    assert any(
+        "must be represented by exactly one raw_unit.expectation_id" in error
+        for error in invariant_errors
+    )
+
+
+def test_expected_raw_unit_must_retain_configured_source_family():
+    data = load(EXAMPLES_DIR / "source-census-v1-example.json")
+    data["raw_units"][1]["source_family"] = "runtime-provider-mismatch"
+
+    schema_errors, invariant_errors = validate_document(data)
+    assert schema_errors == []
+    assert any(
+        "source_family must match seed expectation" in error
+        for error in invariant_errors
+    )
+
+
+def test_required_provider_family_is_configuration_only_and_status_neutral():
+    baseline = load(EXAMPLES_DIR / "source-census-v1-example.json")
+    family = "provider-added-or-renamed-without-code-change"
+    baseline["seed_expectations"][0]["source_family"] = family
+    baseline["raw_units"][1]["source_family"] = family
+
+    for status in ("inaccessible", "missing_expected", "blocked"):
+        candidate = copy.deepcopy(baseline)
+        candidate["raw_units"][1]["acquisition_status"] = status
+        assert validate_document(candidate) == ([], [])
+
+
 def test_assistant_plan_is_rejected_from_operator_intent_lane():
     data = load(EXAMPLES_DIR / "lineage-graph-v1-example.json")
     schema = load(SCHEMAS_DIR / "lineage-graph.v1.schema.json")
@@ -105,7 +159,118 @@ def test_exact_coverage_can_retain_explicit_blocker_debt_without_being_ready():
     data = load(EXAMPLES_DIR / "coverage-receipt-v1-example.json")
     assert data["exact_all"] is True
     assert data["ready"] is False
+    assert data["constitutional_scope"]["exact_all"] is True
+    assert data["constitutional_scope"]["ready"] is True
     assert semantic_errors(data) == []
+
+
+def test_coverage_requires_a_separately_typed_constitutional_scope():
+    data = load(EXAMPLES_DIR / "coverage-receipt-v1-example.json")
+    data.pop("constitutional_scope")
+
+    schema_errors, _ = validate_document(data)
+    assert schema_errors
+
+
+def test_constitutional_scope_ready_is_schema_level_if_and_only_if():
+    baseline = load(EXAMPLES_DIR / "coverage-receipt-v1-example.json")
+    invalid_scopes = (
+        {
+            "scope_reference": "scope:constitutional:not-exact",
+            "exact_all": False,
+            "blocked_scopes": [],
+            "missing_requirements": [],
+            "ready": True,
+        },
+        {
+            "scope_reference": "scope:constitutional:blocked",
+            "exact_all": True,
+            "blocked_scopes": ["scope:operator-authority"],
+            "missing_requirements": [],
+            "ready": True,
+        },
+        {
+            "scope_reference": "scope:constitutional:missing",
+            "exact_all": True,
+            "blocked_scopes": [],
+            "missing_requirements": ["requirement:ratification-evidence"],
+            "ready": True,
+        },
+        {
+            "scope_reference": "scope:constitutional:false-negative",
+            "exact_all": True,
+            "blocked_scopes": [],
+            "missing_requirements": [],
+            "ready": False,
+        },
+    )
+
+    for scope in invalid_scopes:
+        candidate = copy.deepcopy(baseline)
+        candidate["constitutional_scope"] = scope
+        schema_errors, _ = validate_document(candidate)
+        assert schema_errors, scope["scope_reference"]
+
+
+def test_constitutional_scope_non_ready_states_require_explicit_scope_debt():
+    baseline = load(EXAMPLES_DIR / "coverage-receipt-v1-example.json")
+    valid_scopes = (
+        {
+            "scope_reference": "scope:constitutional:not-exact",
+            "exact_all": False,
+            "blocked_scopes": [],
+            "missing_requirements": [],
+            "ready": False,
+        },
+        {
+            "scope_reference": "scope:constitutional:blocked",
+            "exact_all": True,
+            "blocked_scopes": ["scope:operator-authority"],
+            "missing_requirements": [],
+            "ready": False,
+        },
+        {
+            "scope_reference": "scope:constitutional:missing",
+            "exact_all": True,
+            "blocked_scopes": [],
+            "missing_requirements": ["requirement:ratification-evidence"],
+            "ready": False,
+        },
+    )
+
+    for scope in valid_scopes:
+        candidate = copy.deepcopy(baseline)
+        candidate["constitutional_scope"] = scope
+        assert validate_document(candidate) == ([], []), scope["scope_reference"]
+
+
+def test_constitutional_scope_ready_does_not_weaken_global_ready():
+    data = load(EXAMPLES_DIR / "coverage-receipt-v1-example.json")
+    assert data["constitutional_scope"]["ready"] is True
+
+    data["ready"] = True
+    data["closure_status"] = "ready"
+    _, invariant_errors = validate_document(data)
+    assert any(
+        "ready must be true exactly when exact_all is true and every source is parsed"
+        in error
+        for error in invariant_errors
+    )
+
+
+def test_coverage_allows_additional_owner_debt_without_aliasing_ready():
+    data = load(EXAMPLES_DIR / "coverage-receipt-v1-example.json")
+    data["unresolved_blockers"].append(
+        "receipt:normalization-parity-fixture#/readiness/unresolved_blockers"
+    )
+    data["citation_debt"].append("assertion:candidate")
+    data["incomplete_predicates"].append("IF-GOV-001")
+    data["closure_status"] = "closed_with_owner_routed_debt"
+
+    assert semantic_errors(data) == []
+    data["ready"] = True
+    data["closure_status"] = "ready"
+    assert semantic_errors(data)
 
 
 def test_all_parsed_coverage_is_exact_and_ready():
@@ -123,6 +288,33 @@ def test_all_parsed_coverage_is_exact_and_ready():
 def test_verified_operator_directive_requires_source_event_and_ratification():
     data = load(EXAMPLES_DIR / "assertion-evidence-v1-example.json")
     data["assertion_class"] = "operator_directive"
+    assert semantic_errors(data)
+
+
+def test_ratified_operator_directive_accepts_event_bound_freshness():
+    data = load(EXAMPLES_DIR / "assertion-evidence-v1-example.json")
+    data["assertion_class"] = "operator_directive"
+    data["evidence_references"][0]["evidence_type"] = "immutable_source_event"
+    data["evidence_references"][1][
+        "evidence_type"
+    ] = "ratified_constitutional_record"
+    data["freshness"] = {
+        "verified_at": "2026-07-17T08:39:10Z",
+        "status": "not_applicable",
+    }
+    assert validate_document(data) == ([], [])
+
+
+def test_verified_operator_directive_rejects_missing_or_stale_freshness():
+    data = load(EXAMPLES_DIR / "assertion-evidence-v1-example.json")
+    data["assertion_class"] = "operator_directive"
+    assert validate_document(data)[0]
+
+    data["freshness"] = {
+        "verified_at": "2026-07-17T08:39:10Z",
+        "max_age_seconds": 1,
+        "status": "stale",
+    }
     assert semantic_errors(data)
 
 
@@ -216,6 +408,7 @@ def test_normalization_parity_requires_every_census_unit_exactly_once():
     extra["promotions"].append(
         {
             "raw_unit_id": "raw_not_in_census",
+            "raw_unit_content_hash": None,
             "disposition": {
                 "type": "ignored_transport_echo",
                 "owner_reference": "owner_normalizer",
@@ -226,6 +419,44 @@ def test_normalization_parity_requires_every_census_unit_exactly_once():
         }
     )
     assert semantic_errors(extra)
+
+
+def test_normalization_parity_binds_each_promotion_to_census_content_identity():
+    baseline = load(
+        EXAMPLES_DIR / "normalization-parity-receipt-v1-example.json"
+    )
+
+    mismatch = copy.deepcopy(baseline)
+    mismatch["promotions"][0]["raw_unit_content_hash"] = (
+        "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    )
+    schema_errors, invariant_errors = validate_document(mismatch)
+    assert schema_errors == []
+    assert any("do not match input_census.raw_units" in error for error in invariant_errors)
+
+    duplicate = copy.deepcopy(baseline)
+    duplicate["input_census"]["raw_units"].append(
+        copy.deepcopy(duplicate["input_census"]["raw_units"][0])
+    )
+    assert semantic_errors(duplicate)
+
+
+def test_promoted_contracts_require_raw_unit_content_identity():
+    for example_name in (
+        "source-envelope-v1-example.json",
+        "normalized-event-v1-example.json",
+    ):
+        candidate = load(EXAMPLES_DIR / example_name)
+        candidate.pop("raw_unit_content_hash")
+        schema_errors, _ = validate_document(candidate)
+        assert schema_errors, example_name
+
+    parity = load(
+        EXAMPLES_DIR / "normalization-parity-receipt-v1-example.json"
+    )
+    parity["promotions"][0].pop("raw_unit_content_hash")
+    schema_errors, _ = validate_document(parity)
+    assert schema_errors
 
 
 def test_parity_owner_routed_debt_can_be_exact_but_never_ready():
@@ -333,6 +564,67 @@ def test_cadence_receipt_requires_exact_predecessor_hash_chain():
         "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
     )
     assert semantic_errors(data)
+
+
+def test_cadence_run_one_is_valid_only_as_an_incomplete_first_traversal():
+    data = load(EXAMPLES_DIR / "governance-cadence-receipt-v1-example.json")
+    data["run_number"] = 1
+    data["previous_cadence_receipt_digest"] = None
+    data["fixed_point"] = {
+        "status": "not_applicable",
+        "new_event_count": 999,
+        "changed_byte_count": 999,
+        "replayed_completed_children": 0,
+        "previous_output_digest": None,
+        "output_digest_matches_previous": False,
+    }
+    data["readiness"]["exact_all"] = False
+    data["readiness"]["ready"] = False
+    data["readiness"]["status"] = "incomplete"
+
+    assert validate_document(data) == ([], [])
+
+    data["readiness"]["exact_all"] = True
+    data["readiness"]["ready"] = True
+    data["readiness"]["status"] = "ready"
+    schema_errors, invariant_errors = validate_document(data)
+    assert schema_errors
+    assert invariant_errors
+
+
+def test_cadence_false_ready_rejects_nonzero_fixed_point_counts():
+    data = load(EXAMPLES_DIR / "governance-cadence-receipt-v1-example.json")
+    data["fixed_point"]["new_event_count"] = 999
+
+    schema_errors, invariant_errors = validate_document(data)
+    assert schema_errors
+    assert invariant_errors
+
+
+def test_cadence_run_two_ready_binds_the_previous_output_digest():
+    data = load(EXAMPLES_DIR / "governance-cadence-receipt-v1-example.json")
+    data["fixed_point"]["previous_output_digest"] = (
+        "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    )
+
+    schema_errors, invariant_errors = validate_document(data)
+    assert schema_errors == []
+    assert any("output_digest_matches_previous" in error for error in invariant_errors)
+
+
+def test_cadence_changed_second_traversal_is_honestly_incomplete():
+    data = load(EXAMPLES_DIR / "governance-cadence-receipt-v1-example.json")
+    data["output_digest"] = (
+        "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    )
+    data["fixed_point"]["status"] = "changed"
+    data["fixed_point"]["changed_byte_count"] = 999
+    data["fixed_point"]["output_digest_matches_previous"] = False
+    data["readiness"]["exact_all"] = False
+    data["readiness"]["ready"] = False
+    data["readiness"]["status"] = "incomplete"
+
+    assert validate_document(data) == ([], [])
 
 
 def test_snapshot_bundle_ready_requires_two_runs_and_post_proof_fixed_point():

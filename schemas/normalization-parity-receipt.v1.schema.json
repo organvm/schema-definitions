@@ -27,7 +27,13 @@
     "generated_at": {"type": "string", "format": "date-time"},
     "input_census": {
       "type": "object",
-      "required": ["census_id", "census_reference", "census_digest", "raw_unit_ids"],
+      "required": [
+        "census_id",
+        "census_reference",
+        "census_digest",
+        "raw_unit_ids",
+        "raw_units"
+      ],
       "properties": {
         "census_id": {"type": "string", "minLength": 1},
         "census_reference": {"type": "string", "minLength": 1},
@@ -37,6 +43,27 @@
           "minItems": 1,
           "uniqueItems": true,
           "items": {"type": "string", "pattern": "^raw_[A-Za-z0-9_-]+$"}
+        },
+        "raw_units": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["raw_unit_id", "content_hash"],
+            "properties": {
+              "raw_unit_id": {
+                "type": "string",
+                "pattern": "^raw_[A-Za-z0-9_-]+$"
+              },
+              "content_hash": {
+                "oneOf": [
+                  {"$ref": "#/$defs/digest"},
+                  {"type": "null"}
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
         }
       },
       "additionalProperties": false
@@ -60,9 +87,15 @@
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["raw_unit_id"],
+        "required": ["raw_unit_id", "raw_unit_content_hash"],
         "properties": {
           "raw_unit_id": {"type": "string", "pattern": "^raw_[A-Za-z0-9_-]+$"},
+          "raw_unit_content_hash": {
+            "oneOf": [
+              {"$ref": "#/$defs/digest"},
+              {"type": "null"}
+            ]
+          },
           "event_ids": {
             "type": "array",
             "minItems": 1,

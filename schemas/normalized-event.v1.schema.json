@@ -13,6 +13,7 @@
     "snapshot_id",
     "snapshot_digest",
     "raw_unit_id",
+    "raw_unit_content_hash",
     "source_family",
     "source_instance",
     "format_adapter",
@@ -59,6 +60,10 @@
     },
     "snapshot_digest": {"$ref": "#/$defs/digest"},
     "raw_unit_id": {"type": "string", "pattern": "^raw_[A-Za-z0-9_-]+$"},
+    "raw_unit_content_hash": {
+      "$ref": "#/$defs/digest",
+      "description": "Immutable content identity of the census raw unit promoted into this event. It is excluded from stable event identity because identity_basis.content_hash already binds the normalized event content."
+    },
     "source_family": {
       "type": "string",
       "minLength": 1,

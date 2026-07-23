@@ -28,6 +28,13 @@
     "missing_expected": 0,
     "owner_blocked": 1
   },
+  "constitutional_scope": {
+    "scope_reference": "scope:governance-constitutional-authority:negative-exact-all",
+    "exact_all": true,
+    "blocked_scopes": [],
+    "missing_requirements": [],
+    "ready": true
+  },
   "exact_all": false,
   "ready": false,
   "unresolved_blockers": ["src_blocked_fixture"],

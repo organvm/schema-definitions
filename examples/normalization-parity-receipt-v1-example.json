@@ -12,6 +12,16 @@
     "raw_unit_ids": [
       "raw_fixture_event_001",
       "raw_fixture_expected_002"
+    ],
+    "raw_units": [
+      {
+        "raw_unit_id": "raw_fixture_event_001",
+        "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      {
+        "raw_unit_id": "raw_fixture_expected_002",
+        "content_hash": null
+      }
     ]
   },
   "output_events": {
@@ -24,12 +34,14 @@
   "promotions": [
     {
       "raw_unit_id": "raw_fixture_event_001",
+      "raw_unit_content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
       "event_ids": [
         "evt_c4dd29c0ba4b171d9a7bf4278d2a3742a82a4b1b6b5b1664697d50adc04a992f"
       ]
     },
     {
       "raw_unit_id": "raw_fixture_expected_002",
+      "raw_unit_content_hash": null,
       "disposition": {
         "type": "blocked",
         "owner_reference": "owner_source_export_fixture",

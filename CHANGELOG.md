@@ -15,6 +15,9 @@
 - Define `exact_all` as exactly-once classification of the frozen denominator;
   expose `ready` separately so classified inaccessible sources retain owner
   debt, and prohibit `closed_with_owner_routed_debt` from aliasing readiness.
+- Require a separately typed constitutional coverage scope whose readiness is
+  exact if and only if its named authority scope is exact and carries no blocked
+  scopes or missing requirements, without weakening global coverage readiness.
 - Require candidate testaments to omit ratification and ratified testaments to
   bind immutable operator events, assertion evidence, the candidate digest,
   controlling formulation, and unblocked constitutional coverage.

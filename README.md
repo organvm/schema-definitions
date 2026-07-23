@@ -25,17 +25,17 @@ embed a provider catalog or deployment-specific path.
 
 | Contract | Responsibility |
 |----------|----------------|
-| `source-envelope.v1.schema.json` | Provider-neutral source identity, authority, hashes, and private custody pointer |
+| `source-envelope.v1.schema.json` | Provider-neutral source identity, authority, raw-unit content binding, and private custody pointer |
 | `lineage-graph.v1.schema.json` | Separate operator-intent and artifact timelines with reviewed typed edges |
 | `governance-testament.v1.schema.json` | Ratified directives, layers, instruments, ideals, predicates, and citations |
 | `assertion-evidence.v1.schema.json` | Evidence independence, verification, and freshness for assertions |
 | `node-self-image.v1.schema.json` | Identity, relations, cursors, state, digests, and distance to active ideals |
-| `coverage-receipt.v1.schema.json` | Dynamic denominator, exact classification, separate readiness, and residual owners |
+| `coverage-receipt.v1.schema.json` | Dynamic denominator, exact classification, separate global and constitutional-scope readiness, and residual owners |
 | `owner-reference.v1.schema.json` | Stable owner IDs resolved through owner-native records |
 | `parameter-contract.v1.schema.json` | Typed runtime parameters, validation, freshness, and secret-reference policy |
 | `source-census.v1.schema.json` | Runtime enumeration of Git refs, workspaces, custody manifests, application stores, exports, and connectors |
-| `normalized-event.v1.schema.json` | Stable native event identity independent of snapshot and transport position |
-| `normalization-parity-receipt.v1.schema.json` | Complete raw-unit-to-event-or-disposition promotion crosswalk |
+| `normalized-event.v1.schema.json` | Stable native event identity plus immutable raw-unit content binding, independent of snapshot and transport position |
+| `normalization-parity-receipt.v1.schema.json` | Complete content-bound raw-unit-to-event-or-disposition promotion crosswalk |
 | `ideal-form-register.v1.schema.json` | Receipt-derived ideal status, implementation predicates, and distance |
 | `iceberg-atlas.v1.schema.json` | Two authority timelines and six populated graph zooms |
 | `node-self-image-set.v1.schema.json` | Exactly one valid self-image for every registered node |
@@ -49,6 +49,19 @@ not mean ready. Wherever a contract exposes `readiness`, `ready` additionally
 requires no unresolved blockers, quarantines, missing requirements, citation
 debt, or incomplete predicates. `closed_with_owner_routed_debt` is an honest
 closure state but can never alias `ready`.
+
+A coverage receipt also carries a required `constitutional_scope`. Its `ready`
+value is true exactly when that named scope is exact and has no blocked scopes
+or missing requirements. Constitutional readiness is intentionally independent
+of global readiness: CORPVS may ratify from complete authority evidence while
+unrelated upstream normalization debt keeps the receipt's top-level `ready`
+false.
+
+The normalization contracts carry the census `raw_unit_content_hash` through
+source envelopes, normalized events, and every parity promotion. The parity input
+also embeds the full raw-unit/hash denominator, and semantic validation requires
+the promotion bindings to match it exactly. Stable event IDs remain derived only
+from native identity, native role, and normalized content identity.
 
 ## Usage
 

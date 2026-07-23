@@ -2,11 +2,11 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://meta-organvm.github.io/schema-definitions/coverage-receipt.v1.schema.json",
   "title": "Coverage Receipt v1",
-  "description": "Frozen-snapshot coverage account with a dynamic denominator, exactly-one source classifications, and owner-routed residuals.",
+  "description": "Frozen-snapshot coverage account with a dynamic denominator, exactly-one source classifications, owner-routed residuals, and a separately evaluated constitutional scope.",
   "type": "object",
   "required": [
     "contract_name", "contract_version", "receipt_id", "snapshot_id", "generated_at",
-    "denominator", "sources", "counts", "exact_all", "ready", "unresolved_blockers",
+    "denominator", "sources", "counts", "constitutional_scope", "exact_all", "ready", "unresolved_blockers",
     "quarantines", "missing_requirements", "citation_debt", "incomplete_predicates",
     "closure_status", "residual_owners", "receipt_hash"
   ],
@@ -70,6 +70,7 @@
       },
       "additionalProperties": false
     },
+    "constitutional_scope": {"$ref": "#/$defs/constitutional_scope"},
     "exact_all": {"type": "boolean"},
     "ready": {
       "type": "boolean",
@@ -101,6 +102,61 @@
     "receipt_hash": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"}
   },
   "$defs": {
+    "constitutional_scope": {
+      "type": "object",
+      "description": "Coverage of the authority evidence and requirements relevant to constitutional ratification. This scope may be exact and ready while global coverage remains non-ready because unrelated normalization or source debt persists.",
+      "required": [
+        "scope_reference",
+        "exact_all",
+        "blocked_scopes",
+        "missing_requirements",
+        "ready"
+      ],
+      "properties": {
+        "scope_reference": {"type": "string", "minLength": 1},
+        "exact_all": {"type": "boolean"},
+        "blocked_scopes": {"$ref": "#/$defs/debt_list"},
+        "missing_requirements": {"$ref": "#/$defs/debt_list"},
+        "ready": {"type": "boolean"}
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "exact_all": {"const": true},
+            "blocked_scopes": {"maxItems": 0},
+            "missing_requirements": {"maxItems": 0},
+            "ready": {"const": true}
+          },
+          "required": [
+            "exact_all",
+            "blocked_scopes",
+            "missing_requirements",
+            "ready"
+          ]
+        },
+        {
+          "properties": {
+            "ready": {"const": false}
+          },
+          "required": ["ready"],
+          "anyOf": [
+            {
+              "properties": {"exact_all": {"const": false}},
+              "required": ["exact_all"]
+            },
+            {
+              "properties": {"blocked_scopes": {"minItems": 1}},
+              "required": ["blocked_scopes"]
+            },
+            {
+              "properties": {"missing_requirements": {"minItems": 1}},
+              "required": ["missing_requirements"]
+            }
+          ]
+        }
+      ],
+      "additionalProperties": false
+    },
     "debt_list": {
       "type": "array",
       "uniqueItems": true,

@@ -21,12 +21,18 @@
     "inference_label": {"type": "string", "minLength": 1},
     "freshness": {
       "type": "object",
-      "required": ["verified_at", "max_age_seconds", "status"],
+      "required": ["verified_at", "status"],
       "properties": {
         "verified_at": {"type": "string", "format": "date-time"},
         "max_age_seconds": {"type": "integer", "minimum": 1},
         "status": {"type": "string", "enum": ["fresh", "stale", "not_applicable"]}
       },
+      "allOf": [
+        {
+          "if": {"properties": {"status": {"enum": ["fresh", "stale"]}}},
+          "then": {"required": ["max_age_seconds"]}
+        }
+      ],
       "additionalProperties": false
     },
     "evidence_references": {
@@ -60,6 +66,15 @@
     },
     {
       "if": {"properties": {"assertion_class": {"const": "current_state"}}},
+      "then": {"required": ["freshness"]}
+    },
+    {
+      "if": {
+        "properties": {
+          "assertion_class": {"const": "operator_directive"},
+          "verification_state": {"const": "verified"}
+        }
+      },
       "then": {"required": ["freshness"]}
     }
   ],
