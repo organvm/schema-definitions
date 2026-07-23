@@ -290,6 +290,15 @@ def test_self_image_registry_projection_tampering_fails_digest_binding():
     )
 
 
+def test_self_image_registry_projection_canonicalization_failure_is_reported():
+    data = load(EXAMPLES_DIR / "node-self-image-set-v1-example.json")
+    data["registry_projection"][0]["lifecycle_status"] = 2**53
+
+    schema_errors, invariant_errors = validate_document(data)
+    assert schema_errors
+    assert any("RFC 8785 canonicalizable" in error for error in invariant_errors)
+
+
 def test_self_declared_registered_ids_cannot_replace_registry_denominator():
     data = load(EXAMPLES_DIR / "node-self-image-set-v1-example.json")
     replacement_id = "ent_repo_01ARZ3NDEKTSV4RRFFQ69G5FAW"

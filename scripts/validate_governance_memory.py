@@ -898,14 +898,20 @@ def _node_self_image_set_errors(data: dict[str, Any]) -> list[str]:
         errors.append(
             "registry_reference must resolve to the embedded registry_projection"
         )
-    expected_registry_digest = (
-        "sha256:" + hashlib.sha256(rfc8785.dumps(registry_projection)).hexdigest()
-    )
-    digest_matches = data.get("registry_digest") == expected_registry_digest
-    if not digest_matches:
-        errors.append(
-            "registry_digest must equal sha256(RFC 8785 registry_projection)"
+    try:
+        canonical_projection = rfc8785.dumps(registry_projection)
+    except rfc8785.CanonicalizationError:
+        digest_matches = False
+        errors.append("registry_projection must be RFC 8785 canonicalizable")
+    else:
+        expected_registry_digest = (
+            "sha256:" + hashlib.sha256(canonical_projection).hexdigest()
         )
+        digest_matches = data.get("registry_digest") == expected_registry_digest
+        if not digest_matches:
+            errors.append(
+                "registry_digest must equal sha256(RFC 8785 registry_projection)"
+            )
 
     denominator_matches = registered_node_ids == projection_node_ids
     if not denominator_matches:
